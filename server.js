@@ -10,6 +10,7 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use('/uploaded', express.static(path.join(__dirname, 'uploaded')));
 app.use(express.static(path.join(__dirname, 'views/public')));
 
 // Set EJS as template engine
@@ -18,7 +19,7 @@ app.set('views', path.join(__dirname, 'views'));
 
 // Ensure data directories exist
 const dataDir = path.join(__dirname, 'data');
-const uploadedDir = path.join(__dirname, 'views/public/uploaded');
+const uploadedDir = path.join(__dirname, 'uploaded');
 
 async function ensureDirectories() {
     await fs.ensureDir(dataDir);

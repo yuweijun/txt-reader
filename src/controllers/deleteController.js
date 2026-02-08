@@ -17,7 +17,7 @@ async function deleteController(req, res) {
         const story = stories[storyIndex];
         
         // Delete the physical file
-        const filePath = path.join(__dirname, '../../views/public/uploaded', story.fileName);
+        const filePath = path.join(__dirname, '../../uploaded', story.fileName);
         await fs.remove(filePath);
         
         // Remove from stories array

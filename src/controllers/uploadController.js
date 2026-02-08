@@ -6,7 +6,7 @@ const multer = require('multer');
 // Configure multer for file upload with proper encoding
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        const uploadPath = path.join(__dirname, '../../views/public/uploaded');
+        const uploadPath = path.join(__dirname, '../../uploaded');
         cb(null, uploadPath);
     },
     filename: (req, file, cb) => {
