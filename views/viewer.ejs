@@ -14,7 +14,7 @@
             top: 120px;
             width: 250px;
             max-height: calc(100vh - 150px);
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.25);
             color: white;
             border-radius: 10px;
             padding: 15px;
@@ -25,25 +25,25 @@
             scrollbar-width: thin;
             scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
         }
-        
+
         /* WebKit scrollbar styling for chapters sidebar */
         .chapters-sidebar::-webkit-scrollbar {
             width: 6px;
         }
-        
+
         .chapters-sidebar::-webkit-scrollbar-track {
             background: transparent;
         }
-        
+
         .chapters-sidebar::-webkit-scrollbar-thumb {
             background: rgba(255, 255, 255, 0.3);
             border-radius: 3px;
         }
-        
+
         .chapters-sidebar::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.5);
         }
-        
+
         /* Search input styling */
         .chapter-search {
             width: 100%;
@@ -55,23 +55,23 @@
             color: white;
             font-size: 14px;
         }
-        
+
         .chapter-search::placeholder {
             color: rgba(255, 255, 255, 0.6);
         }
-        
+
         .chapter-search:focus {
             outline: none;
             border-color: rgba(0, 123, 255, 0.5);
             background: rgba(255, 255, 255, 0.15);
         }
-        
+
         .chapter-list {
             list-style: none;
             padding: 0;
             margin: 0;
         }
-        
+
         .chapter-item {
             padding: 8px 12px;
             margin: 5px 0;
@@ -80,25 +80,25 @@
             transition: all 0.2s;
             font-size: 14px;
         }
-        
+
         .chapter-item.active {
             background: rgba(0, 123, 255, 0.3);
         }
-        
+
         .chapter-item.current {
             background: #28a745;
             font-weight: bold;
             border-left: 3px solid #fff;
         }
-        
+
         .chapter-item:hover {
             background: rgba(255, 255, 255, 0.2);
         }
-        
+
         .toggle-chapters {
             display: none;
         }
-        
+
         /* Navigation Header */
         .navigation-header {
             background: rgba(0, 0, 0, 0.9);
@@ -108,7 +108,7 @@
             z-index: 1000;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
+
         /* Base styles */
         body {
             font-family: sans-serif;
@@ -117,32 +117,159 @@
             padding: 0;
             transition: all 0.3s ease;
         }
-        
+
         /* Theme styles */
+        /* Improved Dark Themes for Better Text Reading */
+
+        /* Default Dark Theme - Enhanced contrast */
         .theme-default {
-            background-color: #ffffff;
-            color: #333333;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
         }
-        
+
+        /* Monokai Pro - Professional dark theme */
         .theme-monokai {
-            background-color: #040403;
+            background-color: #2d2a2e;
+            color: #fcfcfa;
+        }
+
+        /* Deep Dark - High contrast for reading */
+        .theme-dark {
+            background-color: #0f0f0f;
+            color: #f0f0f0;
+        }
+
+        /* Solarized Dark - Eye-friendly theme */
+        .theme-solarized {
+            background-color: #002b36;
+            color: #839496;
+        }
+
+        /* Dracula - Popular dark theme */
+        .theme-dracula {
+            background-color: #282a36;
             color: #f8f8f2;
         }
-        
-        .theme-dark {
-            background-color: #1e1e1e;
-            color: #d4d4d4;
+
+        /* Nord - Arctic-inspired theme */
+        .theme-nord {
+            background-color: #2e3440;
+            color: #eceff4;
         }
-        
-        .theme-light {
-            background-color: #f5f5f5;
-            color: #333333;
+
+        /* Gruvbox - Retro theme */
+        .theme-gruvbox {
+            background-color: #282828;
+            color: #ebdbb2;
         }
-        
+
+        /* One Dark - Atom-inspired theme */
+        .theme-onedark {
+            background-color: #282c34;
+            color: #abb2bf;
+        }
+
+        /* Dark Green - Nature-inspired theme */
+        .theme-darkgreen {
+            background-color: #0f1e13;
+            color: #c0d6c7;
+        }
+
+        /* Navigation header styles for dark themes */
+        .theme-default .navigation-header {
+            background: rgba(26, 26, 26, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(224, 224, 224, 0.1);
+        }
+
+        .theme-monokai .navigation-header {
+            background: rgba(45, 42, 46, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(252, 252, 250, 0.1);
+        }
+
+        .theme-dark .navigation-header {
+            background: rgba(15, 15, 15, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(240, 240, 240, 0.1);
+        }
+
+        .theme-solarized .navigation-header {
+            background: rgba(0, 43, 54, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(131, 148, 150, 0.1);
+        }
+
+        .theme-dracula .navigation-header {
+            background: rgba(40, 42, 54, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(248, 248, 242, 0.1);
+        }
+
+        .theme-nord .navigation-header {
+            background: rgba(46, 52, 64, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(236, 239, 244, 0.1);
+        }
+
+        .theme-gruvbox .navigation-header {
+            background: rgba(40, 40, 40, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(235, 219, 178, 0.1);
+        }
+
+        .theme-onedark .navigation-header {
+            background: rgba(40, 44, 52, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(171, 178, 191, 0.1);
+        }
+
+        .theme-darkgreen .navigation-header {
+            background: rgba(15, 30, 19, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(192, 214, 199, 0.1);
+        }
+
+        /* Text content styles for improved dark themes */
+        .theme-default .text-content {
+            color: #e0e0e0;
+        }
+
+        .theme-monokai .text-content {
+            color: #fcfcfa;
+        }
+
+        .theme-dark .text-content {
+            color: #f0f0f0;
+        }
+
+        .theme-solarized .text-content {
+            color: #839496;
+        }
+
+        .theme-dracula .text-content {
+            color: #f8f8f2;
+        }
+
+        .theme-nord .text-content {
+            color: #eceff4;
+        }
+
+        .theme-gruvbox .text-content {
+            color: #ebdbb2;
+        }
+
+        .theme-onedark .text-content {
+            color: #abb2bf;
+        }
+
+        .theme-darkgreen .text-content {
+            color: #c0d6c7;
+        }
+
         /* Content container */
         .content-container {
             max-width: 1200px;
-            background-color: #15430f;
             margin: 0 auto 0 290px; /* Add left margin for sidebar */
             padding: 20px;
             min-height: 100vh;
@@ -152,24 +279,24 @@
             scrollbar-width: thin;
             scrollbar-color: rgba(128, 128, 128, 0.5) transparent;
         }
-        
+
         .content-container::-webkit-scrollbar {
             width: 6px;
         }
-        
+
         .content-container::-webkit-scrollbar-track {
             background: transparent;
         }
-        
+
         .content-container::-webkit-scrollbar-thumb {
             background: rgba(128, 128, 128, 0.5);
             border-radius: 4px;
         }
-        
+
         .content-container::-webkit-scrollbar-thumb:hover {
             background: rgba(128, 128, 128, 0.7);
         }
-        
+
         /* Text content */
         .text-content {
             font-size: <%= fontSize %>px;
@@ -178,14 +305,14 @@
             margin-bottom: 30px;
             line-height: 1.1;
         }
-        
+
         /* Loading indicator */
         .loading {
             text-align: center;
             padding: 50px;
             font-size: 20px;
         }
-        
+
         /* Responsive design */
         @media (max-width: 768px) {
             .content-container {
@@ -193,7 +320,7 @@
                 margin-left: 0; /* Remove left margin on mobile */
                 max-width: 100%;
             }
-            
+
             .chapters-sidebar {
                 position: relative;
                 left: 0;
@@ -203,7 +330,7 @@
                 margin: 20px 0;
                 border-radius: 0;
             }
-            
+
             .chapter-search {
                 width: calc(100% - 24px);
             }
@@ -218,8 +345,24 @@
                 <i class="fas fa-arrow-left"></i> Back to Library
             </a>
             <h4 class="mb-0 text-white"><span><%= fileName %></span></h4>
-            <div class="d-flex align-items-center">
-                <!-- Controls removed as requested -->
+            <div class="dropdown">
+                <button class="btn btn-outline-light dropdown-toggle" type="button" id="themeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-palette"></i> Theme
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="themeDropdown">
+                    <li><h6 class="dropdown-header">Popular Dark Themes</h6></li>
+                    <li><a class="dropdown-item theme-option" href="#" data-theme="default"><i class="fas fa-circle" style="color: #e0e0e0;"></i> Default Dark</a></li>
+                    <li><a class="dropdown-item theme-option" href="#" data-theme="monokai"><i class="fas fa-circle" style="color: #fcfcfa; background: #2d2a2e; border-radius: 50%;"></i> Monokai Pro</a></li>
+                    <li><a class="dropdown-item theme-option" href="#" data-theme="dark"><i class="fas fa-circle" style="color: #f0f0f0;"></i> Deep Dark</a></li>
+                    <li><a class="dropdown-item theme-option" href="#" data-theme="solarized"><i class="fas fa-circle" style="color: #839496;"></i> Solarized</a></li>
+                    <li><a class="dropdown-item theme-option" href="#" data-theme="darkgreen"><i class="fas fa-circle" style="color: #c0d6c7;"></i> Dark Green</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><h6 class="dropdown-header">Developer Favorites</h6></li>
+                    <li><a class="dropdown-item theme-option" href="#" data-theme="dracula"><i class="fas fa-circle" style="color: #f8f8f2;"></i> Dracula</a></li>
+                    <li><a class="dropdown-item theme-option" href="#" data-theme="nord"><i class="fas fa-circle" style="color: #eceff4;"></i> Nord</a></li>
+                    <li><a class="dropdown-item theme-option" href="#" data-theme="gruvbox"><i class="fas fa-circle" style="color: #ebdbb2;"></i> Gruvbox</a></li>
+                    <li><a class="dropdown-item theme-option" href="#" data-theme="onedark"><i class="fas fa-circle" style="color: #abb2bf;"></i> One Dark</a></li>
+                </ul>
             </div>
         </div>
     </div>
@@ -230,45 +373,102 @@
 
     <!-- Chapters Sidebar -->
     <div class="chapters-sidebar" id="chaptersSidebar">
-        <h6 class="mb-3">📖 Table of Contents</h6>
         <input type="text" class="chapter-search" id="chapterSearch" placeholder="Search chapters...">
         <ul class="chapter-list" id="chapterList"></ul>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Color Scheme Management
+        const themes = {
+            default: 'theme-default',
+            monokai: 'theme-monokai',
+            dark: 'theme-dark',
+            solarized: 'theme-solarized',
+            dracula: 'theme-dracula',
+            nord: 'theme-nord',
+            gruvbox: 'theme-gruvbox',
+            onedark: 'theme-onedark',
+            darkgreen: 'theme-darkgreen'
+        };
+
+        function applyTheme(theme) {
+            // Remove all theme classes
+            Object.values(themes).forEach(themeClass => {
+                document.body.classList.remove(themeClass);
+            });
+
+            // Apply selected theme
+            if (themes[theme]) {
+                document.body.classList.add(themes[theme]);
+            }
+
+            // Update dropdown button text
+            const themeNames = {
+                default: 'Default Dark',
+                monokai: 'Monokai Pro',
+                dark: 'Deep Dark',
+                solarized: 'Solarized',
+                dracula: 'Dracula',
+                nord: 'Nord',
+                gruvbox: 'Gruvbox',
+                onedark: 'One Dark',
+                darkgreen: 'Dark Green'
+            };
+            document.getElementById('themeDropdown').innerHTML = `<i class="fas fa-palette"></i> ${themeNames[theme]}`;
+
+            // Save to localStorage
+            localStorage.setItem('preferredViewerTheme', theme);
+        }
+
+        // Load saved theme or default to current theme
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('preferredViewerTheme') || '<%= theme %>';
+            applyTheme(savedTheme);
+
+            // Add event listeners to theme options
+            document.querySelectorAll('.theme-option').forEach(option => {
+                option.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const theme = this.getAttribute('data-theme');
+                    applyTheme(theme);
+                });
+            });
+        });
+
         const fileId = '<%= fileId %>';
         const currentPage = <%= currentPage %>;
         const currentTheme = '<%= theme %>';
         const filePath = '<%= filePath %>';
         const storyId = '<%= storyId %>';
-        
+
         console.log('File ID:', fileId);
         console.log('Current Page:', currentPage);
         console.log('File Path:', filePath);
         console.log('Story ID:', storyId);
-        
+
         let fileContent = '';
         let chapters = [];
         let currentChapter = null;
         let chaptersVisible = true; // Always visible now
         let totalPages = 1;
         let filteredChapters = []; // For search functionality
-        
+
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             // Load the TXT file content
             loadFileContent();
-            
+
             // Initialize chapters sidebar (always visible)
             document.getElementById('chaptersSidebar').classList.add('visible');
-            
+
             // Add search functionality
             const searchInput = document.getElementById('chapterSearch');
             searchInput.addEventListener('input', function() {
                 filterChapters(this.value);
             });
         });
-        
+
         async function loadFileContent() {
             try {
                 console.log('Loading file from path:', filePath);
@@ -280,7 +480,7 @@
                 }
                 fileContent = await response.text();
                 console.log('File loaded successfully, length:', fileContent.length);
-                
+
                 // Parse chapters from content
                 try {
                     parseChapters();
@@ -289,7 +489,7 @@
                     console.error('Error parsing chapters:', parseError);
                     throw parseError;
                 }
-                
+
                 // Display current page content
                 try {
                     displayCurrentPage();
@@ -298,13 +498,13 @@
                     console.error('Error displaying page:', displayError);
                     throw displayError;
                 }
-                
+
                 // Set initial current chapter
                 currentChapter = getCurrentChapterFromPage(currentPage);
-                
+
                 // Highlight current chapter
                 setTimeout(highlightCurrentChapter, 100);
-                
+
             } catch (error) {
                 console.error('Error in loadFileContent:', error);
                 console.error('Error name:', error.name);
@@ -313,14 +513,14 @@
                 document.querySelector('.text-content').textContent = 'Error loading file content: ' + error.message;
             }
         }
-        
+
         function parseChapters() {
             console.log('Parsing chapters...');
             chapters = [];
             const lines = fileContent.split('\n');
             let lineNumber = 0;
             let charPosition = 0;
-            
+
             // Common chapter patterns
             const chapterPatterns = [
                 /^第?\s*([一二三四五六七八九十百千万\d]+)\s*[章节卷部篇回]/, // Chinese chapters
@@ -329,9 +529,9 @@
                 /^[IVXLCDM]+\.\s/, // Roman numerals
                 /^\d+\.\d+/ // Decimal numbering
             ];
-            
+
             console.log('Processing', lines.length, 'lines');
-            
+
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i].trim();
                 if (line) {
@@ -352,9 +552,9 @@
                 charPosition += lines[i].length + 1;
                 lineNumber++;
             }
-            
+
             console.log('Found', chapters.length, 'chapters');
-            
+
             // Calculate chapter lengths
             for (let i = 0; i < chapters.length; i++) {
                 const chapter = chapters[i];
@@ -365,7 +565,7 @@
                     chapter.charLength = fileContent.length - chapter.charPosition;
                 }
             }
-            
+
             // If no chapters found, create one for the whole document
             if (chapters.length === 0) {
                 chapters.push({
@@ -376,18 +576,18 @@
                     charLength: fileContent.length
                 });
             }
-            
+
             // Update chapters list in sidebar
             updateChaptersList();
         }
-        
+
         function updateChaptersList() {
             const chapterList = document.getElementById('chapterList');
             chapterList.innerHTML = '';
-            
+
             // Use filtered chapters if search is active, otherwise use all chapters
             const chaptersToShow = filteredChapters.length > 0 ? filteredChapters : chapters;
-            
+
             chaptersToShow.forEach((chapter, index) => {
                 const li = document.createElement('li');
                 li.className = 'chapter-item';
@@ -401,14 +601,14 @@
                 chapterList.appendChild(li);
             });
         }
-        
+
         function filterChapters(searchTerm) {
             if (!searchTerm.trim()) {
                 filteredChapters = [];
                 updateChaptersList();
                 return;
             }
-            
+
             const term = searchTerm.toLowerCase().trim();
             filteredChapters = chapters.filter((chapter, index) => {
                 return chapter.title.toLowerCase().includes(term);
@@ -418,37 +618,37 @@
                     originalIndex: chapters.indexOf(chapter)
                 };
             });
-            
+
             updateChaptersList();
         }
-        
+
         function displayCurrentPage() {
             const textContent = document.getElementById('textContent');
-            
+
             // Display entire content instead of paginated content
             textContent.textContent = fileContent;
             textContent.style.fontSize = '<%= fontSize %>px';
-            
+
             // Set totalPages to 1 since we're showing entire content
             totalPages = 1;
         }
-        
+
         function scrollToChapter(chapterIndex) {
             if (!chapters || chapterIndex >= chapters.length) return;
-            
+
             const chapter = chapters[chapterIndex];
             const textContent = document.getElementById('textContent');
             const contentContainer = document.querySelector('.content-container');
-            
+
             if (!textContent || !contentContainer) return;
-            
+
             // Find the chapter title position in the text content
             const chapterTitle = chapter.title;
             const textContentStr = textContent.textContent;
-            
+
             // Find the position of the chapter title in the text
             const titleIndex = findChapterTitlePosition(textContentStr, chapterTitle);
-            
+
             if (titleIndex !== -1) {
                 // Calculate the approximate scroll position
                 const tempDiv = document.createElement('div');
@@ -465,40 +665,40 @@
                 `;
                 tempDiv.textContent = textContentStr.substring(0, titleIndex);
                 document.body.appendChild(tempDiv);
-                
+
                 const scrollPosition = tempDiv.offsetHeight;
                 document.body.removeChild(tempDiv);
-                
+
                 // Scroll to the chapter position with smooth animation
                 contentContainer.scrollTo({
                     top: scrollPosition,
                     behavior: 'smooth'
                 });
-                
+
                 // Update current page and chapter tracking
                 currentPage = 0;
                 currentChapter = chapter;
                 highlightCurrentChapter();
             }
         }
-        
+
         function findChapterTitlePosition(textContent, chapterTitle) {
             // Normalize the chapter title for better matching
             const normalizedTitle = chapterTitle.trim();
-            
+
             // Try exact match first
             let position = textContent.indexOf(normalizedTitle);
-            
+
             if (position === -1) {
                 // Try fuzzy matching
                 const simplifiedTitle = normalizedTitle
                     .replace(/^[第章卷部篇回\s]+/, '')
                     .replace(/^[Chapter\s]+/i, '')
                     .trim();
-                
+
                 if (simplifiedTitle.length > 0) {
                     position = textContent.indexOf(simplifiedTitle);
-                    
+
                     if (position === -1) {
                         const chapterNumberMatch = normalizedTitle.match(/[\d零一二三四五六七八九十百千万]+/);
                         if (chapterNumberMatch) {
@@ -508,7 +708,7 @@
                                 `Chapter\\s*${chapterNumber}`,
                                 `${chapterNumber}\\s*[章节卷部篇回]`
                             ];
-                            
+
                             for (const pattern of numberPatterns) {
                                 const regex = new RegExp(pattern, 'i');
                                 const match = textContent.match(regex);
@@ -521,13 +721,13 @@
                     }
                 }
             }
-            
+
             return position;
         }
-        
+
         function getCurrentChapterFromPage(page) {
             if (!chapters || chapters.length === 0) return null;
-            
+
             for (let i = chapters.length - 1; i >= 0; i--) {
                 const chapter = chapters[i];
                 if (page >= chapter.pageNumber) {
@@ -540,13 +740,13 @@
             }
             return chapters[0];
         }
-        
+
         function highlightCurrentChapter() {
             // Remove all active/current classes
             document.querySelectorAll('.chapter-item').forEach(item => {
                 item.classList.remove('active', 'current');
             });
-            
+
             // Find and highlight current chapter
             const currentChapterElement = document.querySelector(`.chapter-item[data-page="${currentPage}"]`);
             if (currentChapterElement) {
@@ -554,15 +754,15 @@
                 currentChapterElement.scrollIntoView({behavior: 'smooth', block: 'center'});
             }
         }
-        
+
         function navigateToPreviousChapter() {
             if (!chapters || chapters.length === 0) return;
-            
+
             const contentContainer = document.querySelector('.content-container');
             if (!contentContainer) return;
-            
+
             const currentScrollTop = contentContainer.scrollTop;
-            
+
             let currentChapterIndex = 0;
             for (let i = chapters.length - 1; i >= 0; i--) {
                 const position = getChapterScrollPosition(i);
@@ -571,20 +771,20 @@
                     break;
                 }
             }
-            
+
             if (currentChapterIndex > 0) {
                 scrollToChapter(currentChapterIndex - 1);
             }
         }
-        
+
         function navigateToNextChapter() {
             if (!chapters || chapters.length === 0) return;
-            
+
             const contentContainer = document.querySelector('.content-container');
             if (!contentContainer) return;
-            
+
             const currentScrollTop = contentContainer.scrollTop;
-            
+
             let currentChapterIndex = 0;
             for (let i = chapters.length - 1; i >= 0; i--) {
                 const position = getChapterScrollPosition(i);
@@ -593,26 +793,26 @@
                     break;
                 }
             }
-            
+
             if (currentChapterIndex < chapters.length - 1) {
                 scrollToChapter(currentChapterIndex + 1);
             }
         }
-        
+
         function getChapterScrollPosition(chapterIndex) {
             if (!chapters || chapterIndex >= chapters.length) return 0;
-            
+
             const chapter = chapters[chapterIndex];
             const textContent = document.getElementById('textContent');
             const contentContainer = document.querySelector('.content-container');
-            
+
             if (!textContent || !contentContainer) return 0;
-            
+
             const chapterTitle = chapter.title;
             const textContentStr = textContent.textContent;
-            
+
             const titleIndex = findChapterTitlePosition(textContentStr, chapterTitle);
-            
+
             if (titleIndex !== -1) {
                 const tempDiv = document.createElement('div');
                 tempDiv.style.cssText = `
@@ -628,27 +828,27 @@
                 `;
                 tempDiv.textContent = textContentStr.substring(0, titleIndex);
                 document.body.appendChild(tempDiv);
-                
+
                 const scrollPosition = tempDiv.offsetHeight;
                 document.body.removeChild(tempDiv);
-                
+
                 return scrollPosition;
             }
-            
+
             return 0;
         }
-        
+
         function navigateWithinChapter(direction) {
             const contentContainer = document.querySelector('.content-container');
             const textContent = document.getElementById('textContent');
-            
+
             if (!contentContainer || !textContent) return;
-            
+
             const containerHeight = contentContainer.clientHeight;
             const contentHeight = textContent.clientHeight;
             const scrollTop = contentContainer.scrollTop;
             const scrollAmount = containerHeight * 0.8;
-            
+
             if (direction > 0) {
                 if (scrollTop + containerHeight >= contentHeight - 10) {
                     console.log('Reached bottom of content');
