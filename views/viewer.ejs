@@ -344,7 +344,11 @@
             <a href="/" class="btn btn-outline-light">
                 <i class="fas fa-arrow-left"></i> Back to Library
             </a>
-            <h4 class="mb-0 text-white"><span><%= fileName %></span></h4>
+            <div class="text-center flex-grow-1">
+                <h4 class="mb-0 text-white" id="storyTitleDisplay">
+                    <span>Loading document...</span>
+                </h4>
+            </div>
             <div class="dropdown">
                 <button class="btn btn-outline-light dropdown-toggle" type="button" id="themeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="fas fa-palette"></i> Theme
@@ -378,7 +382,14 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/database.js"></script>
+    <script src="/js/fileProcessor.js"></script>
     <script>
+        // Initialize database and file processor
+        const db = new TextReaderDB();
+        const localFileProcessor = new LocalFileProcessor();
+        window.localFileProcessor = localFileProcessor;
+        
         // Color Scheme Management
         const themes = {
             default: 'theme-default',
@@ -436,15 +447,13 @@
             });
         });
 
-        const fileId = '<%= fileId %>';
+        const storyId = '<%= storyId %>';
         const currentPage = <%= currentPage %>;
         const currentTheme = '<%= theme %>';
-        const filePath = '<%= filePath %>';
-        const storyId = '<%= storyId %>';
 
-        console.log('File ID:', fileId);
+        console.log('Story ID:', storyId);
         console.log('Current Page:', currentPage);
-        console.log('File Path:', filePath);
+        // File path is no longer needed in pure frontend architecture
         console.log('Story ID:', storyId);
 
         let fileContent = '';
@@ -453,69 +462,170 @@
         let chaptersVisible = true; // Always visible now
         let totalPages = 1;
         let filteredChapters = []; // For search functionality
+        let storySegments = []; // Store segment information
+        let currentSegmentIndex = 0; // Track current segment
+        let readingHistory = null; // Store reading history
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            // Load the TXT file content
-            loadFileContent();
-
-            // Initialize chapters sidebar (always visible)
-            document.getElementById('chaptersSidebar').classList.add('visible');
-
-            // Add search functionality
-            const searchInput = document.getElementById('chapterSearch');
-            searchInput.addEventListener('input', function() {
-                filterChapters(this.value);
-            });
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                // Initialize database
+                await db.init();
+                
+                // Load story data from database to get the title
+                const storyData = await db.getStoryById(storyId);
+                if (storyData) {
+                    // Display story title
+                    const titleElement = document.getElementById('storyTitleDisplay');
+                    if (titleElement) {
+                        titleElement.innerHTML = `<span>${storyData.originalFileName.replace(/\.txt$/i, '')}</span>`;
+                    }
+                }
+                
+                // Load story segments if they exist
+                if (storyData && storyData.segments) {
+                    storySegments = storyData.segments;
+                }
+                
+                // Load reading history
+                readingHistory = await db.getReadingHistory(storyId);
+                
+                // Load the TXT file content
+                await loadFileContent();
+                
+                // Initialize chapters sidebar (always visible)
+                document.getElementById('chaptersSidebar').classList.add('visible');
+                
+                // Add search functionality
+                const searchInput = document.getElementById('chapterSearch');
+                searchInput.addEventListener('input', function() {
+                    filterChapters(this.value);
+                });
+                
+                // Save reading progress periodically
+                setInterval(saveReadingProgress, 30000); // Save every 30 seconds
+                
+                // Save on page unload
+                window.addEventListener('beforeunload', saveReadingProgress);
+                
+            } catch (error) {
+                document.querySelector('.text-content').textContent = 'Error initializing viewer: ' + error.message;
+            }
         });
 
         async function loadFileContent() {
             try {
-                console.log('Loading file from path:', filePath);
-                const response = await fetch(filePath);
-                console.log('Response status:', response.status);
-                console.log('Response ok:', response.ok);
-                if (!response.ok) {
-                    throw new Error('Failed to load file: ' + response.status + ' ' + response.statusText);
-                }
-                fileContent = await response.text();
-                console.log('File loaded successfully, length:', fileContent.length);
+                // Get story content from local database
+                fileContent = await window.localFileProcessor.getStoryContent(storyId);
 
                 // Parse chapters from content
-                try {
-                    parseChapters();
-                    console.log('Chapters parsed successfully');
-                } catch (parseError) {
-                    console.error('Error parsing chapters:', parseError);
-                    throw parseError;
-                }
+                parseChapters();
 
                 // Display current page content
-                try {
-                    displayCurrentPage();
-                    console.log('Page displayed successfully');
-                } catch (displayError) {
-                    console.error('Error displaying page:', displayError);
-                    throw displayError;
+                displayCurrentPage();
+
+                // Set initial current chapter and position
+                if (readingHistory) {
+                    // Restore from reading history
+                    restoreReadingPosition(readingHistory);
+                } else {
+                    // Set initial current chapter
+                    currentChapter = getCurrentChapterFromPage(currentPage);
+                    setTimeout(highlightCurrentChapter, 100);
                 }
 
-                // Set initial current chapter
-                currentChapter = getCurrentChapterFromPage(currentPage);
-
-                // Highlight current chapter
-                setTimeout(highlightCurrentChapter, 100);
-
             } catch (error) {
-                console.error('Error in loadFileContent:', error);
-                console.error('Error name:', error.name);
-                console.error('Error message:', error.message);
-                console.error('Error stack:', error.stack);
                 document.querySelector('.text-content').textContent = 'Error loading file content: ' + error.message;
             }
         }
 
+        function restoreReadingPosition(history) {
+            console.log('Restoring reading position from history:', history);
+            
+            // Scroll to last position
+            const contentContainer = document.querySelector('.content-container');
+            if (contentContainer && history.lastScrollPosition) {
+                setTimeout(() => {
+                    contentContainer.scrollTo({
+                        top: history.lastScrollPosition,
+                        behavior: 'smooth'
+                    });
+                }, 500);
+            }
+            
+            // Highlight last chapter if available
+            if (history.lastChapterTitle && chapters.length > 0) {
+                const matchingChapter = chapters.find(ch => 
+                    ch.title.includes(history.lastChapterTitle) || 
+                    history.lastChapterTitle.includes(ch.title)
+                );
+                
+                if (matchingChapter) {
+                    currentChapter = {
+                        id: matchingChapter.id,
+                        title: matchingChapter.title,
+                        pageNumber: matchingChapter.pageNumber
+                    };
+                    setTimeout(highlightCurrentChapter, 1000);
+                }
+            }
+        }
+
+        async function saveReadingProgress() {
+            try {
+                const contentContainer = document.querySelector('.content-container');
+                if (!contentContainer) return;
+                
+                // Get current scroll position
+                const scrollPosition = contentContainer.scrollTop;
+                
+                // Get current chapter
+                let currentChapterTitle = '';
+                if (currentChapter) {
+                    currentChapterTitle = currentChapter.title;
+                } else {
+                    // Try to determine current chapter from scroll position
+                    const currentChapterObj = getCurrentChapterFromScrollPosition(scrollPosition);
+                    if (currentChapterObj) {
+                        currentChapterTitle = currentChapterObj.title;
+                    }
+                }
+                
+                // Save to database
+                const historyData = {
+                    storyId: storyId,
+                    lastChapterTitle: currentChapterTitle,
+                    lastScrollPosition: scrollPosition
+                };
+                
+                await db.saveReadingHistory(historyData);
+                
+            } catch (error) {
+                // Silently handle saving errors
+            }
+        }
+
+        function getCurrentChapterFromScrollPosition(scrollPosition) {
+            if (!chapters || chapters.length === 0) return null;
+            
+            const textContent = document.getElementById('textContent');
+            if (!textContent) return null;
+            
+            // Estimate character position from scroll position
+            const estimatedCharPos = Math.floor((scrollPosition / textContent.scrollHeight) * fileContent.length);
+            
+            // Find chapter containing this position
+            for (let i = chapters.length - 1; i >= 0; i--) {
+                const chapter = chapters[i];
+                if (estimatedCharPos >= chapter.charPosition) {
+                    return chapter;
+                }
+            }
+            
+            return chapters[0];
+        }
+
         function parseChapters() {
-            console.log('Parsing chapters...');
             chapters = [];
             const lines = fileContent.split('\n');
             let lineNumber = 0;
@@ -529,8 +639,6 @@
                 /^[IVXLCDM]+\.\s/, // Roman numerals
                 /^\d+\.\d+/ // Decimal numbering
             ];
-
-            console.log('Processing', lines.length, 'lines');
 
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i].trim();
@@ -552,8 +660,6 @@
                 charPosition += lines[i].length + 1;
                 lineNumber++;
             }
-
-            console.log('Found', chapters.length, 'chapters');
 
             // Calculate chapter lengths
             for (let i = 0; i < chapters.length; i++) {

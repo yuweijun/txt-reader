@@ -1,18 +1,19 @@
-# Advanced Text Reader Web Application
+# Text Reader - Pure Frontend Application
 
-A modern Node.js web application for uploading, reading, and managing large text files with advanced features including chapter detection, real-time navigation, and customizable reading experience.
+A modern web application for reading and managing text files with advanced features including chapter detection, real-time navigation, and customizable reading experience. All processing happens directly in the browser with no server-side file storage.
 
-## 🚀 Features
+## 🚀 Key Features
 
 ### Core Functionality
-- **Smart File Upload**: Drag-and-drop or browse to upload TXT files (100MB limit)
+- **Browser-Based Processing**: All file handling occurs in the browser - no server uploads
+- **Direct Text Pasting**: Paste content directly into the application without file upload
+- **Local Storage**: Files stored entirely in browser's IndexedDB database
 - **Automatic Chapter Detection**: Intelligently identifies chapters using multiple pattern recognition algorithms
 - **Real-time Content Display**: Full text viewing without pagination for seamless reading experience
 - **Smooth Navigation**: Keyboard shortcuts and chapter-based scrolling
-- **Persistent Library**: Maintains history of uploaded files with metadata
 
 ### Reading Experience
-- **Multiple Themes**: Monokai, Dark, Light, and Default color schemes
+- **Multiple Themes**: 9 professional dark themes (Monokai Pro, Deep Dark, Solarized, Dracula, Nord, Gruvbox, One Dark, Dark Green, Default)
 - **Font Customization**: Adjustable font sizes for comfortable reading
 - **Chapter Sidebar**: Always-visible table of contents with search functionality
 - **Smart Scrolling**: Navigate between chapters or scroll within content
@@ -21,24 +22,22 @@ A modern Node.js web application for uploading, reading, and managing large text
 ### Advanced Features
 - **Chapter Search**: Real-time filtering of chapter titles
 - **Keyboard Navigation**: Comprehensive shortcut system
-- **URL Parameters**: Customize font size and theme via URL
-- **File Management**: Delete functionality for uploaded files
-- **UTF-8 Support**: Proper handling of international character sets
+- **Reading History**: Automatic position saving and restoration
+- **Pagination**: 30 items per page with navigation controls
+- **File Management**: Complete CRUD operations for local documents
 
 ## 🛠️ Technology Stack
 
-- **Runtime**: Node.js
-- **Framework**: Express.js
-- **Template Engine**: EJS
-- **File Handling**: Multer middleware
-- **Frontend**: Vanilla JavaScript with Bootstrap 5
-- **Styling**: CSS3 with modern features
+- **Frontend**: Vanilla JavaScript with modern ES6+ features
+- **Database**: IndexedDB for local storage
+- **UI Framework**: Bootstrap 5
 - **Icons**: Font Awesome
+- **Server**: Minimal Express.js for static file serving only
 
 ## 📋 Prerequisites
 
-- Node.js v14 or higher
-- npm package manager
+- Modern web browser (Chrome, Firefox, Safari, Edge)
+- Node.js v14 or higher (for development server only)
 
 ## 🚀 Getting Started
 
@@ -56,7 +55,7 @@ npm install
 ### Development
 
 ```bash
-# Start development server with auto-restart
+# Start development server
 npm run dev
 
 # Or start with custom port
@@ -66,27 +65,26 @@ PORT=3001 npm run dev
 ### Production
 
 ```bash
-# Build for production (if applicable)
-npm run build
-
 # Start production server
 npm start
 ```
 
 ## 🎯 Usage
 
-### Uploading Files
-1. Navigate to `http://localhost:3000` (or your configured port)
-2. Upload a TXT file by:
-   - Clicking "Browse Files" button
-   - Dragging and dropping files onto the upload area
-3. The application will automatically detect chapters and display the content
+### Adding Content
+1. Navigate to `http://localhost:3000`
+2. Add content by either:
+   - **Pasting text**: Type or paste content directly into the text area
+   - **File upload**: Select a TXT file from your computer
+3. Click the appropriate "Process" button
+4. The content will be saved to your local browser database
 
 ### Reading Features
 - **Navigation**: Use arrow keys or click on chapters in the sidebar
 - **Search**: Type in the chapter search box to filter chapter titles
 - **Themes**: Switch between different color schemes using theme controls
-- **Font Size**: Adjust text size using +/- controls or URL parameters
+- **Font Size**: Adjust text size using the viewer controls
+- **Position Memory**: Automatically returns to your last reading position
 
 ### Keyboard Shortcuts
 - **← Arrow Left**: Previous chapter
@@ -99,72 +97,74 @@ npm start
 
 ```
 txt-reader/
-├── server.js                         # Main application entry point
+├── server.js                         # Minimal Express server for static files
 ├── package.json                      # Project dependencies and scripts
 ├── src/
 │   └── controllers/
-│       ├── uploadController.js       # File upload handling
-│       ├── viewController.js         # View page serving
-│       └── deleteController.js       # File deletion handling
+│       └── viewController.js         # Route handling for viewer pages
 ├── views/
-│   ├── index.ejs                     # Main upload/library page
+│   ├── index.ejs                     # Main document management page
 │   ├── viewer.ejs                    # Advanced text reading interface
 │   └── public/
 │       ├── css/                      # Stylesheets
-│       ├── js/                       # Client-side JavaScript
-│       └── uploaded/                 # Uploaded text files storage
-├── data/
-│   ├── stories.json                  # Story metadata persistence
-│   └── chapters.json                 # Chapter structure data
+│       └── js/                       # Client-side JavaScript
+│           ├── database.js           # IndexedDB wrapper
+│           ├── fileProcessor.js      # Local file processing
+│           └── init.js               # Application initialization
 └── README.md                         # This documentation
 ```
 
-## 🔧 Configuration
+## 🔧 Architecture
 
-### Environment Variables
-- `PORT`: Server port (default: 3000)
-- File size limit: 100MB (configured in uploadController.js)
+### Pure Frontend Design
+This application follows a pure frontend architecture where:
+- **No server-side file storage**: All files remain in the browser
+- **Client-side processing**: File reading, parsing, and storage handled by browser APIs
+- **Local database**: IndexedDB provides persistent storage within the browser
+- **Minimal server**: Express.js only serves static files and routes
 
-### URL Parameters
-- `fontSize`: Font size in pixels (e.g., `?fontSize=18`)
-- `theme`: Theme selection (monokai, dark, light, default)
+### Data Flow
+1. User inputs text via paste or file selection
+2. Browser FileReader API reads the content
+3. Content is stored in IndexedDB local database
+4. Viewer loads content directly from local storage
+5. Reading positions are automatically saved and restored
 
-## 🧪 Testing
+## 🧪 Supported Formats
 
-### Sample Files
-The application works with any plain text (.txt) files. For testing chapter detection, use files with common chapter formats:
-- `Chapter 1`, `Chapter 2`, etc.
-- `第1章`, `第2章`, etc. (Chinese chapters)
-- `Section 1`, `Section 2`, etc.
+### File Types
+- Plain text files (.txt)
+- UTF-8 encoded content
+- Maximum file size: 100MB
+
+### Chapter Detection Patterns
+- English: `Chapter 1`, `Chapter 2`, etc.
+- Chinese: `第1章`, `第2章`, etc.
+- Technical: `Section 1`, `Section 2`, etc.
 - Roman numerals: `I.`, `II.`, etc.
+- Decimal numbering: `1.1`, `1.2`, etc.
 
-### Test Commands
-```bash
-# Test file upload via curl
-curl -F "file=@sample.txt" http://localhost:3000/upload
+## 🔒 Privacy & Security
 
-# Test with Chinese filename
-curl -F "file=@测试文件.txt" http://localhost:3000/upload
-```
-
-## 🔒 Security Features
-
-- File type validation (TXT files only)
-- File size limiting (100MB maximum)
-- UTF-8 encoding support for international characters
-- Secure file storage with unique identifiers
+- **Zero server storage**: Files never leave your browser
+- **Local processing**: All operations happen on your device
+- **No internet required**: Works offline once loaded
+- **Private browsing**: Content remains on your machine only
+- **Secure deletion**: Files can be permanently removed from local storage
 
 ## 🐛 Troubleshooting
 
 ### Common Issues
-1. **"No file selected!" error**: Usually resolved by refreshing the page or checking browser console
-2. **File upload fails**: Verify file size is under 100MB and file type is .txt
-3. **Chinese characters display incorrectly**: The application now properly handles UTF-8 encoding
+1. **Content not displaying**: Check browser console for IndexedDB errors
+2. **Large files slow to load**: Browser processing time increases with file size
+3. **Data loss concerns**: Regular browser clearing will remove local data
+4. **Cross-browser compatibility**: Modern browsers with IndexedDB support required
 
-### Debugging
-- Check browser console for JavaScript errors
-- Server logs show detailed upload processing information
-- Enable development mode for detailed error messages
+### Browser Support
+- Chrome 50+
+- Firefox 50+
+- Safari 10+
+- Edge 79+
 
 ## 🤝 Contributing
 
@@ -182,5 +182,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 - Bootstrap 5 for responsive UI components
 - Font Awesome for iconography
-- Express.js community for excellent documentation
-- Multer for robust file upload handling
+- IndexedDB API for local storage capabilities

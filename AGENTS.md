@@ -4,7 +4,7 @@ This file provides guidance to Qoder (qoder.com) when working with code in this 
 
 ## Project Overview
 
-Advanced text reader web application built with Node.js and Express.js that provides rich text viewing capabilities with chapter parsing, file management, and customizable reading experience.
+Pure frontend text reader web application that provides rich text viewing capabilities with chapter parsing, local document management, and customizable reading experience. All processing occurs in the browser with zero server-side file storage.
 
 ## Code Style Guidelines
 
@@ -14,9 +14,9 @@ Advanced text reader web application built with Node.js and Express.js that prov
 - **Variable declarations**: Use `const` for immutable values, `let` for mutable values, avoid `var`
 - **Function style**: Use arrow functions for callbacks and concise functions
 - **Async/Await**: Prefer async/await over callbacks and .then() chains
-- **Module imports**: Use ES6 import/export syntax when possible, CommonJS require/module.exports for compatibility
+- **Module imports**: Use ES6 import/export syntax when possible
 - **Error handling**: Use try/catch blocks for async operations
-- **Logging**: Use console.log/warn/error appropriately for debugging and monitoring
+- **Logging**: Minimize console output in production code
 
 ### Git Commit Guidelines
 
@@ -33,19 +33,8 @@ Keep commit messages focused on describing the actual changes made to the codeba
 **Always remove unused dependencies** after making changes to the project. This includes:
 - Dependencies that were used previously but are no longer needed
 - Dev dependencies that aren't actually used in development
-- Outdated packages that should be updated
 
-Run `npm audit` and `npm outdated` regularly to check for security vulnerabilities and outdated packages.
-
-### Test Method Naming Convention
-
-Follow descriptive naming for test functions using the pattern:
-`should_[expected_behavior]_when_[conditions]`
-
-Examples:
-- `should_load_file_content_when_valid_path_provided`
-- `should_reject_upload_when_file_size_exceeds_limit`
-- `should_parse_chapters_correctly_from_text_content`
+Run `npm audit` regularly to check for security vulnerabilities.
 
 ## Build and Run Commands
 
@@ -67,139 +56,113 @@ PORT=3001 npm run dev
 ```bash
 # Start production server
 npm start
-
-# Build for production (if applicable)
-npm run build
-```
-
-### Testing
-```bash
-# Run tests (when test suite is implemented)
-npm test
-
-# Run tests with coverage
-npm run test:coverage
 ```
 
 ## Architecture
 
+### Core Philosophy
+
+**Pure Frontend Approach**: 
+- Zero server-side file processing or storage
+- All file operations handled by browser APIs
+- Data persisted in browser's IndexedDB
+- Server only serves static files and routes
+
 ### Core Components
 
 **Main Application** (`server.js`)
-- Express.js application entry point
-- Configures middleware and routes
-- Sets up template engine and static file serving
-- Initializes data directories
+- Minimal Express.js server for static file serving
+- No file upload processing
+- Simple routing for viewer pages
+- No data persistence layer
 
-**File Upload System**
-- Handles multipart file uploads with 50MB size limit
-- Stores files in `views/public/uploaded/` directory
-- Validates file types and sizes using multer
-- Generates unique file IDs with uuid
+**Local File Processing** (`views/public/js/fileProcessor.js`)
+- Handles FileReader API operations
+- Processes text content from files or paste operations
+- Manages story object creation and storage
+- No server communication for file handling
 
-**Text Processing Pipeline**
-- Parses text files for chapter detection and structure
-- Client-side chapter parsing using JavaScript regex
-- Real-time content display without pagination
-- Dynamic chapter navigation and scrolling
+**Database Layer** (`views/public/js/database.js`)
+- IndexedDB wrapper for local storage
+- Manages stories and reading history collections
+- Provides CRUD operations for local data
+- Handles data synchronization and querying
 
-**Chapter Management**
-- Automatic chapter detection using regex patterns
-- Multiple format support (English, Chinese, technical documents)
-- JSON persistence for chapter metadata
-- Real-time chapter navigation with smooth scrolling
+**Document Management** (`views/index.ejs`)
+- Primary interface for adding and managing documents
+- Supports both file upload and text pasting
+- Displays paginated list of local documents
+- Provides search and filtering capabilities
 
-**Theme Engine**
-- Multiple color schemes (Monokai, Dark, Light, Default)
-- Real-time theme switching without page reload
-- Font size customization
-- Responsive design for all device sizes
+**Reading Interface** (`views/viewer.ejs`)
+- Advanced text viewing with chapter navigation
+- Real-time theme switching and customization
+- Automatic position saving and restoration
+- Keyboard navigation and search functionality
 
 ### Data Models
 
-**Story Object**
-- Represents uploaded text files
-- Contains metadata: id, filename, originalFileName, fileSize, uploadDateTime, keywords
-- Stored in `data/stories.json`
+**Story Object** (Stored in IndexedDB)
+```javascript
+{
+    id: "unique_identifier",
+    fileName: "display_filename.txt",
+    originalFileName: "original_filename.txt", 
+    fileSize: 123456,
+    uploadTime: "ISO_timestamp",
+    content: "complete_file_content..."
+}
+```
 
-**Chapter Object**
-- Chapter title and position data
-- Character position mapping
-- Support for hierarchical structure
-
-### Services Layer
-
-**Upload Service** (`src/controllers/uploadController.js`)
-- Handles file storage and metadata creation
-- Manages uploaded directory structure
-- Validates file types and sizes
-
-**View Service** (`src/controllers/viewController.js`)
-- Serves viewer pages with story metadata
-- Prepares data for client-side rendering
-
-**Delete Service** (`src/controllers/deleteController.js`)
-- Handles file deletion and cleanup
-- Removes associated metadata
-
-### Data Storage
-
-**JSON Files** (`data/`)
-- `stories.json`: Story metadata persistence
-- `chapters.json`: Chapter structure data (future expansion)
-- Simple file-based storage instead of database
-
-### Controllers
-
-**Upload Controller** (`src/controllers/uploadController.js`)
-- File upload endpoint with validation
-- Story metadata creation
-- Redirects to viewer after successful upload
-
-**View Controller** (`src/controllers/viewController.js`)
-- Serves viewer pages with story data
-- Prepares template variables
-
-**Delete Controller** (`src/controllers/deleteController.js`)
-- File deletion endpoint
-- Metadata cleanup
+**History Object** (Stored in IndexedDB)
+```javascript
+{
+    id: "history_entry_id",
+    storyId: "associated_story_id",
+    lastChapterTitle: "chapter_title",
+    lastScrollPosition: 12345,
+    lastReadTime: "ISO_timestamp",
+    totalTimeRead: 3600
+}
+```
 
 ### Frontend Components
 
-**Main Templates**
-- `views/index.ejs`: File upload and library view
-- `views/viewer.ejs`: Advanced text reading interface
+**Database Service** (`database.js`)
+- IndexedDB initialization and schema management
+- Story and history CRUD operations
+- Query optimization and indexing
+- Error handling and data integrity
 
-**Key Features**
-- Drag-and-drop file upload
-- Real-time theme switching
-- Keyboard navigation shortcuts
-- Chapters sidebar with TOC
-- Smooth scrolling navigation
-- Responsive design for mobile/desktop
+**File Processor** (`fileProcessor.js`)
+- FileReader API integration
+- Text content processing and validation
+- Story object creation and management
+- Content retrieval and manipulation
 
-### Configuration System
-
-**Environment Variables**
-- `PORT`: Server port (default: 3000)
-- Future expansion for database connections, API keys, etc.
+**Application Initialization** (`init.js`)
+- Database initialization on startup
+- Global utility functions
+- Error boundary handling
+- Performance monitoring setup
 
 ### Data Flow
 
-1. User uploads text file through web interface
-2. File is stored in `views/public/uploaded/` directory with unique ID
-3. Story metadata saved to `data/stories.json`
-4. User accesses viewer page with story ID
-5. Client-side JavaScript loads and parses text content
-6. Chapters are detected and displayed in collapsible sidebar
-7. Users navigate through content with keyboard shortcuts or chapter clicks
+1. User adds content via paste or file selection
+2. Browser FileReader API processes the content
+3. FileProcessor creates story object with metadata
+4. Database service stores story in IndexedDB
+5. User navigates to viewer via document list
+6. Viewer loads content directly from local database
+7. Reading positions automatically saved during use
+8. History restoration on subsequent visits
 
 ### Chapter Detection Patterns
 
 Supports multiple chapter formats:
-- `CHAPTER 1`, `CHAPTER 2` (English)
+- `Chapter 1`, `Chapter 2` (English)
 - `第1章`, `第2章` (Chinese)
-- `SECTION 1`, `SECTION 2` (Technical)
+- `Section 1`, `Section 2` (Technical)
 - `PART I`, `PART II` (Roman numerals)
 - `1.1`, `1.2` (Decimal numbering)
 - Uppercase standalone titles
@@ -208,64 +171,54 @@ Supports multiple chapter formats:
 
 ```
 txt-reader/
-├── server.js                         # Main application file
-├── package.json                      # Project configuration and dependencies
+├── server.js                         # Minimal Express server
+├── package.json                      # Project dependencies
 ├── src/
 │   └── controllers/
-│       ├── uploadController.js       # File upload handling
-│       ├── viewController.js         # View page serving
-│       └── deleteController.js       # File deletion handling
+│       └── viewController.js         # Viewer route handling
 ├── views/
-│   ├── index.ejs                     # Main upload/library page
-│   ├── viewer.ejs                    # Text reading interface
+│   ├── index.ejs                     # Document management interface
+│   ├── viewer.ejs                    # Reading interface
 │   └── public/
 │       ├── css/                      # Stylesheets
-│       ├── js/                       # Client-side JavaScript
-│       └── uploaded/                 # Uploaded text files
-├── data/
-│   ├── stories.json                  # Story metadata
-│   └── chapters.json                 # Chapter structure data
+│       └── js/                       # Client-side JavaScript
+│           ├── database.js           # IndexedDB operations
+│           ├── fileProcessor.js      # Local file handling
+│           └── init.js               # Application startup
 └── README.md                         # Project documentation
 ```
 
 ## Dependencies
 
-- **Express.js**: Web framework for Node.js
-- **Multer**: Middleware for handling multipart/form-data
+- **Express.js**: Minimal web framework for static file serving
 - **EJS**: Embedded JavaScript templating
-- **fs-extra**: File system operations with extra methods
-- **uuid**: UUID generation for unique identifiers
-- **nodemon**: Development tool for auto-restarting server
-
-## Runtime Artifacts
-
-- `views/public/uploaded/`: Directory for uploaded text files
-- `data/stories.json`: JSON file storing story metadata
-- `data/chapters.json`: JSON file storing chapter structure data (future use)
+- **Bootstrap 5**: CSS framework for responsive design
+- **Font Awesome**: Icon library
 
 ## Key Features Summary
 
-✅ **File Upload**: Drag-and-drop with 50MB limit and validation
+✅ **Pure Frontend**: Zero server-side file storage
+✅ **Local Processing**: All operations in browser
+✅ **Text Pasting**: Direct content input without file upload
+✅ **IndexedDB Storage**: Persistent local data storage
 ✅ **Chapter Detection**: Automatic parsing of various chapter formats
 ✅ **Real-time Content**: Full text display with smooth scrolling
-✅ **Multiple Themes**: Monokai, Dark, Light, and Default color schemes
-✅ **Font Customization**: Adjustable size through URL parameters
+✅ **Multiple Themes**: 9 professional dark themes
+✅ **Font Customization**: Adjustable size and styling
 ✅ **Keyboard Navigation**: Comprehensive shortcut system
-✅ **Chapters Sidebar**: Collapsible table of contents with navigation
+✅ **Reading History**: Automatic position saving and restoration
+✅ **Pagination**: 30 items per page document listing
 ✅ **Responsive Design**: Works on desktop, tablet, and mobile
-✅ **Client-side Processing**: JavaScript-based text parsing and navigation
 
 ## Development Guidelines
 
-- Use npm for package management (`npm install`)
-- Follow Express.js best practices
-- Maintain consistent code formatting
-- Use async/await for asynchronous operations
-- Handle errors gracefully with try/catch
-- Validate user input on both client and server side
+- Prioritize browser compatibility and performance
+- Minimize external dependencies
+- Follow progressive enhancement principles
+- Implement proper error handling for browser APIs
 - Test across different browser environments
-- Validate file upload security
-- Handle edge cases for large files
+- Optimize for large text file handling
 - Ensure mobile responsiveness
-- Keep dependencies up to date
-- Monitor for security vulnerabilities
+- Monitor IndexedDB storage quotas
+- Handle browser data clearing scenarios
+- Maintain clean separation of concerns
