@@ -38,24 +38,25 @@ Run `npm audit` regularly to check for security vulnerabilities.
 
 ## Build and Run Commands
 
-### Installing Dependencies
-```bash
-npm install
-```
-
 ### Development
 ```bash
-# Start development server with nodemon
-npm run dev
+# Start development server with Python's built-in HTTP server
+python server.py
 
 # Run with custom port
-PORT=3001 npm run dev
+PORT=8001 python server.py
+
+# Or use the start script
+./start.sh
 ```
 
-### Production
+### Alternative method using http.server module directly
 ```bash
-# Start production server
-npm start
+# Simple HTTP server (serves files as-is, no EJS processing)
+python -m http.server 8000
+
+# From the views directory to serve the web interface properly
+cd views && python -m http.server 8000
 ```
 
 ## Architecture
@@ -70,8 +71,8 @@ npm start
 
 ### Core Components
 
-**Main Application** (`server.js`)
-- Minimal Express.js server for static file serving
+**Main Application** (`server.py`)
+- Python HTTP server using built-in http.server module
 - No file upload processing
 - Simple routing for viewer pages
 - No data persistence layer
@@ -171,27 +172,25 @@ Supports multiple chapter formats:
 
 ```
 txt-reader/
-├── server.js                         # Minimal Express server
-├── package.json                      # Project dependencies
-├── src/
-│   └── controllers/
-│       └── viewController.js         # Viewer route handling
+├── start.sh                          # Convenience script to start the server
+├── requirements.txt                  # Python dependencies (minimal - mostly built-ins)
 ├── views/
-│   ├── index.ejs                     # Document management interface
-│   ├── viewer.ejs                    # Reading interface
+│   ├── index.html                    # Main document management page
+│   ├── viewer.html                   # Advanced text reading interface
+│   ├── viewController.js             # Legacy route handler (no longer used)
 │   └── public/
 │       ├── css/                      # Stylesheets
 │       └── js/                       # Client-side JavaScript
-│           ├── database.js           # IndexedDB operations
-│           ├── fileProcessor.js      # Local file handling
-│           └── init.js               # Application startup
+│           ├── database.js           # IndexedDB wrapper
+│           ├── fileProcessor.js      # Local file processing
+│           ├── init.js               # Application initialization
+│           └── viewer.js             # Viewer-specific functionality
 └── README.md                         # Project documentation
 ```
 
 ## Dependencies
 
-- **Express.js**: Minimal web framework for static file serving
-- **EJS**: Embedded JavaScript templating
+- **Python 3.6+**: Built-in http.server module for static file serving
 - **Bootstrap 5**: CSS framework for responsive design
 - **Font Awesome**: Icon library
 
@@ -222,3 +221,11 @@ txt-reader/
 - Monitor IndexedDB storage quotas
 - Handle browser data clearing scenarios
 - Maintain clean separation of concerns
+
+### Important Server Behavior Note
+
+**Static File Server**: The application uses `python -m http.server 8000` which is a static file server. This means:
+- Changes to HTML, CSS, and JavaScript files are immediately available without restarting the server
+- No server restart is needed during development for file changes
+- The server serves files directly from the filesystem as-is
+- Ideal for rapid development and testing of frontend changes

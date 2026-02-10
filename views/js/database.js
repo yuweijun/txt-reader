@@ -66,7 +66,8 @@ class TextReaderDB {
                 originalFileName: storyData.originalFileName,
                 fileSize: storyData.fileSize,
                 uploadTime: storyData.uploadTime || new Date().toISOString(),
-                content: storyData.content || '' // Store the actual content
+                content: storyData.content || '', // Store the actual content
+                extractedTitle: storyData.extractedTitle || '' // Store the extracted title
             };
 
             const request = store.add(story);
@@ -155,6 +156,29 @@ class TextReaderDB {
 
             getRequest.onerror = () => {
                 reject(getRequest.error);
+            };
+        });
+    }
+
+    /**
+     * Update an existing story
+     */
+    async updateStory(story) {
+        if (!this.db) await this.init();
+        
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction(['stories'], 'readwrite');
+            const store = transaction.objectStore('stories');
+            const request = store.put(story);
+            
+            request.onsuccess = () => {
+                console.log('Story updated successfully:', story.id);
+                resolve(story);
+            };
+            
+            request.onerror = () => {
+                console.error('Failed to update story:', request.error);
+                reject(request.error);
             };
         });
     }

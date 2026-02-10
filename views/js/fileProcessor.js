@@ -19,9 +19,9 @@ class LocalFileProcessor {
             // Generate story ID
             const storyId = this.generateStoryId();
             
-            // Extract title from first line (first 15 characters)
+            // Extract title from first line (max 100 characters)
             const firstLine = fileContent.split('\n')[0] || '';
-            const storyTitle = firstLine.substring(0, 15).trim() || 'Untitled';
+            const storyTitle = firstLine.substring(0, 100).trim() || 'Untitled';
             
             // Create filename based on title
             const generatedFileName = `${storyTitle}.txt`;
@@ -33,7 +33,8 @@ class LocalFileProcessor {
                 originalFileName: generatedFileName,
                 fileSize: file.size,
                 uploadTime: new Date().toISOString(),
-                content: fileContent // Store full content only
+                content: fileContent, // Store full content only
+                extractedTitle: storyTitle // Store the extracted title
             };
             
             await this.db.addStory(storyData);
@@ -52,9 +53,9 @@ class LocalFileProcessor {
             // Generate story ID
             const storyId = this.generateStoryId();
             
-            // Extract title from first line (first 15 characters)
+            // Extract title from first line (max 100 characters)
             const firstLine = content.split('\n')[0] || '';
-            const storyTitle = firstLine.substring(0, 15).trim() || 'Untitled';
+            const storyTitle = firstLine.substring(0, 100).trim() || 'Untitled';
             
             // Create filename based on title
             const generatedFileName = `${storyTitle}.txt`;
@@ -66,7 +67,8 @@ class LocalFileProcessor {
                 originalFileName: generatedFileName,
                 fileSize: new Blob([content]).size,
                 uploadTime: new Date().toISOString(),
-                content: content // Store full content only
+                content: content, // Store full content only
+                extractedTitle: storyTitle // Store the extracted title
             };
             
             await this.db.addStory(storyData);
