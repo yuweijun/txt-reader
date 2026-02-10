@@ -6,7 +6,7 @@
 class LocalFileProcessor {
     constructor() {
         this.db = new TextReaderDB();
-        this.linesPerFile = 10000; // Split files into chunks of 10,000 lines
+        this.chaptersPerFile = 50; // Split files into chunks of 50 chapters
     }
 
     /**
@@ -52,41 +52,55 @@ class LocalFileProcessor {
     }
 
     /**
-     * Process and split large file into chunks of specified line count
+     * Process and split large file into chunks of specified chapter count
      */
     async processAndSplitFile(file) {
         try {
             // Read file content
             const fileContent = await this.readFileAsText(file);
             const lines = fileContent.split('\n');
-            
-            // If file is small enough, process normally
-            if (lines.length <= this.linesPerFile) {
+
+            // Detect all chapters first
+            const chapterBoundaries = this.detectChapterBoundaries(lines);
+
+            // If file has few chapters, process normally
+            if (chapterBoundaries.length <= this.chaptersPerFile) {
                 return [await this.processFile(file)];
             }
-            
-            // Split file into chunks
+
+            // Split file into chunks by chapters
             const storyIds = [];
             const baseFileName = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
-            
-            for (let i = 0; i < lines.length; i += this.linesPerFile) {
-                const chunkLines = lines.slice(i, i + this.linesPerFile);
+            const totalChunks = Math.ceil(chapterBoundaries.length / this.chaptersPerFile);
+
+            for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+                const startChapterIdx = chunkIndex * this.chaptersPerFile;
+                const endChapterIdx = Math.min((chunkIndex + 1) * this.chaptersPerFile,
+                    chapterBoundaries.length);
+
+                // Get line boundaries for this chunk
+                const startLineIdx = chapterBoundaries[startChapterIdx].lineIndex;
+                const endLineIdx = endChapterIdx < chapterBoundaries.length
+                    ? chapterBoundaries[endChapterIdx].lineIndex
+                    : lines.length;
+
+                // Extract chunk lines
+                const chunkLines = lines.slice(startLineIdx, endLineIdx);
                 const chunkContent = chunkLines.join('\n');
-                
+
                 // Generate chunk file name with zero-padded index (3 digits)
-                const chunkIndex = Math.floor(i / this.linesPerFile) + 1;
-                const paddedIndex = chunkIndex.toString().padStart(3, '0');
+                const paddedIndex = (chunkIndex + 1).toString().padStart(3, '0');
                 const chunkFileName = `${baseFileName}-${paddedIndex}.txt`;
-                
+
                 // Generate story ID for this chunk
                 const storyId = this.generateStoryId();
-                
+
                 // Use chunk file name as title (e.g., "filename-001")
                 const chunkTitle = `${baseFileName}-${paddedIndex}`;
-                
+
                 // Process content with chapter formatting
                 const processingResult = this.processContentWithChapters(chunkContent);
-                
+
                 // Save chunk to database
                 const storyData = {
                     id: storyId,
@@ -100,19 +114,56 @@ class LocalFileProcessor {
                     extractedTitle: chunkTitle,
                     isSplitFile: true,
                     splitParentFile: file.name,
-                    splitIndex: chunkIndex,
-                    totalChunks: Math.ceil(lines.length / this.linesPerFile)
+                    splitIndex: chunkIndex + 1,
+                    totalChunks: totalChunks
                 };
-                
+
                 await this.db.addStory(storyData);
                 storyIds.push(storyId);
             }
-            
+
             return storyIds;
-            
+
         } catch (error) {
             throw error;
         }
+    }
+
+    /**
+     * Detect chapter boundaries in the content
+     * Returns array of { lineIndex, title } objects for each chapter
+     */
+    detectChapterBoundaries(lines) {
+        const chapterBoundaries = [];
+
+        // Common chapter patterns
+        const chapterPatterns = [
+            /^第?\s*([一二三四五六七八九十百千万\d]+)\s*[章节卷部篇回]/, // Chinese chapters
+            /^Chapter\s+(\d+)/i, // English chapters
+            /^Section\s+(\d+)/i, // Sections
+            /^[IVXLCDM]+\.\s/, // Roman numerals
+            /^\d+\.\d+/, // Decimal numbering
+            /^PART\s+[A-Z]+/i, // PART headings
+            /^PROLOGUE/i, // Prologue
+            /^EPILOGUE/i // Epilogue
+        ];
+
+        for (let i = 0; i < lines.length; i++) {
+            const trimmedLine = lines[i].trim();
+
+            // Check if this line matches chapter pattern
+            for (const pattern of chapterPatterns) {
+                if (pattern.test(trimmedLine)) {
+                    chapterBoundaries.push({
+                        lineIndex: i,
+                        title: trimmedLine
+                    });
+                    break;
+                }
+            }
+        }
+
+        return chapterBoundaries;
     }
 
     /**
