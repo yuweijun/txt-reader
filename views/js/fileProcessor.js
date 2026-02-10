@@ -40,13 +40,12 @@ class LocalFileProcessor {
                 content: fileContent, // Store original content
                 processedContent: processingResult.htmlContent, // Store HTML formatted content
                 chapters: processingResult.chapters, // Store chapter objects
-                chapterTitles: processingResult.chapterTitles, // Store chapter titles array
                 extractedTitle: storyTitle // Store the extracted title
             };
-            
+
             await this.db.addStory(storyData);
             return storyId;
-            
+
         } catch (error) {
             throw error;
         }
@@ -98,7 +97,6 @@ class LocalFileProcessor {
                     content: chunkContent,
                     processedContent: processingResult.htmlContent,
                     chapters: processingResult.chapters,
-                    chapterTitles: processingResult.chapterTitles,
                     extractedTitle: chunkTitle,
                     isSplitFile: true,
                     splitParentFile: file.name,
@@ -145,13 +143,12 @@ class LocalFileProcessor {
                 content: content, // Store original content
                 processedContent: processingResult.htmlContent, // Store HTML formatted content
                 chapters: processingResult.chapters, // Store chapter objects
-                chapterTitles: processingResult.chapterTitles, // Store chapter titles array
                 extractedTitle: storyTitle // Store the extracted title
             };
-            
+
             await this.db.addStory(storyData);
             return storyId;
-            
+
         } catch (error) {
             throw error;
         }
@@ -160,13 +157,12 @@ class LocalFileProcessor {
     /**
      * Process content by detecting chapters and extracting chapter list
      * Only matched chapter patterns get anchors and are added to chapter list
-     * Returns object with { htmlContent, chapters, chapterTitles }
+     * Returns object with { htmlContent, chapters }
      */
     processContentWithChapters(content) {
         const lines = content.split('\n');
         let htmlContent = '';
         let chapters = [];
-        let chapterTitles = [];
         let chapterIndex = 0;
         let inChapterContent = false;
 
@@ -214,7 +210,6 @@ class LocalFileProcessor {
                     title: trimmedLine,
                     anchorId: anchorId
                 });
-                chapterTitles.push(trimmedLine);
 
                 // Add anchor and heading to HTML
                 htmlContent += `<div id="${anchorId}" class="chapter-anchor"></div>\n`;
@@ -237,15 +232,9 @@ class LocalFileProcessor {
             htmlContent += '</div>\n';
         }
 
-        // If no chapters were detected, create a default entry
-        if (chapters.length === 0) {
-            chapterTitles.push('全文');
-        }
-
         return {
             htmlContent: htmlContent,
-            chapters: chapters,
-            chapterTitles: chapterTitles
+            chapters: chapters
         };
     }
 
