@@ -20,10 +20,10 @@ class LocalFileProcessor {
             // Generate story ID
             const storyId = this.generateStoryId();
             
-            // Extract title from first line (max 100 characters)
+            // Extract title from first line (max 15 characters)
             const firstLine = fileContent.split('\n')[0] || '';
-            const storyTitle = firstLine.substring(0, 100).trim() || 'Untitled';
-            
+            const storyTitle = firstLine.substring(0, 15).trim() || 'Untitled';
+
             // Create filename based on title
             const generatedFileName = `${storyTitle}.txt`;
             
@@ -183,10 +183,10 @@ class LocalFileProcessor {
             // Generate story ID
             const storyId = this.generateStoryId();
             
-            // Extract title from first line (max 100 characters)
+            // Extract title from first line (max 15 characters)
             const firstLine = content.split('\n')[0] || '';
-            const storyTitle = firstLine.substring(0, 100).trim() || 'Untitled';
-            
+            const storyTitle = firstLine.substring(0, 15).trim() || 'Untitled';
+
             // Create filename based on title
             const generatedFileName = `${storyTitle}.txt`;
             
