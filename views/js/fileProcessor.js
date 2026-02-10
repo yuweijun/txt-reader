@@ -221,8 +221,7 @@ class LocalFileProcessor {
                 chapterIndex++;
                 currentChapter = line.trim();
                 currentContentLines = [];
-                const anchorId = `chapter-${chapterIndex}`;
-                htmlContent += `<div id="${anchorId}" class="chapter-anchor"></div>\n`;
+                htmlContent += `<div id="chapter-${chapterIndex}" class="chapter-anchor"></div>\n`;
                 htmlContent += `<div class="chapter-heading">${this.escapeHtml(currentChapter)}</div>\n`;
                 htmlContent += '<div class="chapter-content">\n';
             } else if (line.trim() !== '') {
@@ -274,7 +273,7 @@ class LocalFileProcessor {
             chapterTitles: chapterTitles
         };
     }
-    
+
     /**
      * Format content without adding paragraph or break tags - preserve original line breaks
      */

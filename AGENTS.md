@@ -18,6 +18,23 @@ Pure frontend text reader web application that provides rich text viewing capabi
 - **Error handling**: Use try/catch blocks for async operations
 - **Logging**: Minimize console output in production code
 
+### DRY Principle (Don't Repeat Yourself)
+
+**Avoid code duplication** at all costs. This includes:
+
+- **CSS**: Extract common styles into reusable classes instead of repeating similar rules
+- **JavaScript**: Create reusable functions for repeated logic; avoid copy-pasting code blocks
+- **HTML**: Use templates or components for repeated structures
+- **Configuration**: Centralize theme colors, sizes, and other configurable values
+
+**Examples of violations to avoid**:
+- Copy-pasting similar CSS rules for multiple themes (use CSS variables or common base classes)
+- Repeating the same event listener setup for multiple elements (use event delegation)
+- Duplicating HTML structures (use template literals or components)
+- Hardcoding the same values in multiple places (use constants)
+
+When you see similar code appearing more than twice, refactor it into a reusable abstraction.
+
 ### Git Commit Guidelines
 
 **Do not add AI attribution** to commit messages. This includes:
