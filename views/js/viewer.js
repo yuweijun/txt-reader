@@ -211,11 +211,11 @@ function escapeHtml(text) {
 }
 
 /**
- * Truncate chapter title to max 15 Chinese characters
+ * Truncate chapter title to max 32 Chinese characters
  * Each Chinese character counts as 1, English characters count as 0.5
  */
 function truncateChapterTitle(title) {
-    const maxChars = 15;
+    const maxChars = 32;
     let charCount = 0;
     let truncateIndex = title.length;
 
