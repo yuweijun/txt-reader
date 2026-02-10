@@ -73,7 +73,7 @@ class LocalFileProcessor {
      */
     static extractChapterNumber(title) {
         // Try to match Chinese number pattern: 第*章/回/节
-        const chineseMatch = title.match(/第\s*([一二三四五六七八九十百千万零]+)\s*[章节卷部篇回]/);
+        const chineseMatch = title.match(/第\s*([一二三四五六七八九十百千万零]+)\s*[章节卷部篇回]\s+/);
         if (chineseMatch) {
             return LocalFileProcessor.chineseToArabic(chineseMatch[1]);
         }
@@ -328,7 +328,7 @@ class LocalFileProcessor {
                     htmlContent += '<div class="chapter-content">\n';
                     inChapterContent = true;
                 }
-                htmlContent += `${this.escapeHtml(line)}\n`;
+                htmlContent += `<div>${this.escapeHtml(line)}</div>\n`;
             }
         }
 
