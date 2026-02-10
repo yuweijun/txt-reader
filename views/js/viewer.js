@@ -938,3 +938,335 @@ document.addEventListener('keydown', function(e) {
         }
     }
 });
+
+// Speech Synthesis functionality
+let speechSynthesis = window.speechSynthesis;
+let speechUtterance = null;
+let isSpeaking = false;
+let isPaused = false;
+let speechTextQueue = [];
+let currentSpeechIndex = 0;
+let chineseVoice = null;
+
+// Initialize speech synthesis
+function initSpeechSynthesis() {
+    if (!speechSynthesis) {
+        console.warn('Speech synthesis not supported');
+        return;
+    }
+
+    // Find Chinese male voice
+    chineseVoice = selectChineseMaleVoice();
+
+    // If voices not loaded yet, wait for them
+    if (speechSynthesis.getVoices().length === 0) {
+        speechSynthesis.onvoiceschanged = () => {
+            chineseVoice = selectChineseMaleVoice();
+        };
+    }
+
+    // Setup speech button
+    setupSpeechButton();
+}
+
+// Select Chinese male voice
+function selectChineseMaleVoice() {
+    const voices = speechSynthesis.getVoices();
+
+    // Filter Chinese voices
+    const chineseVoices = voices.filter(voice =>
+        voice.lang.includes('zh') || voice.lang.includes('cmn')
+    );
+
+    if (chineseVoices.length === 0) {
+        return null;
+    }
+
+    // Try to find male voice by name patterns
+    const maleVoice = chineseVoices.find(voice => {
+        const name = voice.name.toLowerCase();
+        // Common patterns for male voices in Chinese TTS
+        return name.includes('male') ||
+               name.includes('nan') ||     // 男
+               name.includes('nanxing') || // 男性
+               name.includes('xiansheng') || // 先生
+               name.includes('yong') ||    // 勇/永 (common in male names)
+               name.includes('wei') ||     // 伟
+               name.includes('qiang') ||   // 强
+               name.includes('gang');      // 刚
+    });
+
+    if (maleVoice) {
+        console.log('Selected Chinese male voice:', maleVoice.name);
+        return maleVoice;
+    }
+
+    // If no male voice found, try to avoid female-sounding names
+    const nonFemaleVoice = chineseVoices.find(voice => {
+        const name = voice.name.toLowerCase();
+        return !name.includes('female') &&
+               !name.includes('nv') &&      // 女
+               !name.includes('nvxing');    // 女性
+    });
+
+    if (nonFemaleVoice) {
+        console.log('Selected Chinese voice (non-female):', nonFemaleVoice.name);
+        return nonFemaleVoice;
+    }
+
+    // Fall back to first Chinese voice
+    console.log('Selected default Chinese voice:', chineseVoices[0].name);
+    return chineseVoices[0];
+}
+
+// Setup speech button event listener
+function setupSpeechButton() {
+    const speechBtn = document.getElementById('speechBtn');
+    if (speechBtn) {
+        speechBtn.addEventListener('click', toggleSpeech);
+    }
+}
+
+// Get all text content for speech
+function getTextForSpeech() {
+    const textContent = document.getElementById('textContent');
+    if (!textContent) return [];
+
+    // Get all text nodes, split by paragraphs or lines
+    const text = textContent.innerText || textContent.textContent || '';
+    return text.split('\n').filter(line => line.trim().length > 0);
+}
+
+// Toggle speech play/pause
+function toggleSpeech() {
+    if (!speechSynthesis) {
+        alert('Speech synthesis not supported in this browser');
+        return;
+    }
+
+    if (isSpeaking && !isPaused) {
+        // Currently speaking - pause it
+        pauseSpeech();
+    } else if (isSpeaking && isPaused) {
+        // Currently paused - resume it
+        resumeSpeech();
+    } else {
+        // Not speaking - start fresh
+        startSpeech();
+    }
+}
+
+// Start speech from current position
+function startSpeech() {
+    speechTextQueue = getTextForSpeech();
+    if (speechTextQueue.length === 0) return;
+
+    // Get current scroll position to determine where to start
+    const contentContainer = document.querySelector('.content-container');
+    const scrollTop = contentContainer ? contentContainer.scrollTop : 0;
+
+    // Find the text index closest to current scroll position
+    currentSpeechIndex = getTextIndexFromScrollPosition(scrollTop);
+
+    isSpeaking = true;
+    isPaused = false;
+    updateSpeechButton();
+    speakNext();
+}
+
+// Pause speech
+function pauseSpeech() {
+    if (speechSynthesis) {
+        speechSynthesis.cancel(); // Cancel current utterance
+        isPaused = true;
+        updateSpeechButton();
+    }
+}
+
+// Resume speech
+function resumeSpeech() {
+    if (speechSynthesis) {
+        isPaused = false;
+        updateSpeechButton();
+        speakNext(); // Start from current index
+    }
+}
+
+// Stop speech
+function stopSpeech() {
+    if (speechSynthesis) {
+        speechSynthesis.cancel();
+    }
+    isSpeaking = false;
+    isPaused = false;
+    currentSpeechIndex = 0;
+    updateSpeechButton();
+}
+
+// Speak next line
+function speakNext() {
+    if (!isSpeaking || isPaused || currentSpeechIndex >= speechTextQueue.length) {
+        if (currentSpeechIndex >= speechTextQueue.length) {
+            stopSpeech();
+        }
+        return;
+    }
+
+    const text = speechTextQueue[currentSpeechIndex];
+
+    speechUtterance = new SpeechSynthesisUtterance(text);
+
+    if (chineseVoice) {
+        speechUtterance.voice = chineseVoice;
+    }
+    speechUtterance.lang = 'zh-CN';
+    speechUtterance.rate = 1.0;
+    speechUtterance.pitch = 1.0;
+
+    // Handle speech end
+    speechUtterance.onend = () => {
+        if (isSpeaking && !isPaused) {
+            currentSpeechIndex++;
+            checkAutoScroll();
+            // Use setTimeout to prevent stack overflow on long texts
+            setTimeout(() => speakNext(), 0);
+        }
+    };
+
+    // Handle speech error
+    speechUtterance.onerror = (event) => {
+        if (event.error !== 'canceled' && event.error !== 'interrupted') {
+            console.error('Speech error:', event.error);
+        }
+    };
+
+    // Highlight current speaking line
+    highlightSpeechLine(currentSpeechIndex);
+
+    speechSynthesis.speak(speechUtterance);
+}
+
+// Get text index from scroll position
+function getTextIndexFromScrollPosition(scrollTop) {
+    const textContent = document.getElementById('textContent');
+    if (!textContent) return 0;
+
+    const lines = speechTextQueue;
+    const totalHeight = textContent.scrollHeight;
+    const approximateIndex = Math.floor((scrollTop / totalHeight) * lines.length);
+
+    return Math.max(0, Math.min(approximateIndex, lines.length - 1));
+}
+
+// Highlight the currently speaking line
+function highlightSpeechLine(index) {
+    // Remove previous highlight
+    document.querySelectorAll('.speech-highlight').forEach(el => {
+        el.classList.remove('speech-highlight');
+    });
+
+    // Find and highlight current line
+    const textContent = document.getElementById('textContent');
+    if (!textContent) return;
+
+    // Get all text nodes
+    const walker = document.createTreeWalker(
+        textContent,
+        NodeFilter.SHOW_TEXT,
+        null,
+        false
+    );
+
+    let currentIndex = 0;
+    let node;
+    while (node = walker.nextNode()) {
+        if (node.textContent.trim() === speechTextQueue[index]) {
+            const parent = node.parentElement;
+            if (parent) {
+                parent.classList.add('speech-highlight');
+                // Scroll to keep line in view
+                scrollToSpeechLine(parent);
+            }
+            break;
+        }
+        currentIndex++;
+    }
+}
+
+// Scroll to keep speech line visible
+function scrollToSpeechLine(element) {
+    const contentContainer = document.querySelector('.content-container');
+    if (!contentContainer || !element) return;
+
+    const containerRect = contentContainer.getBoundingClientRect();
+    const elementRect = element.getBoundingClientRect();
+
+    // Check if element is in the last two lines of visible area
+    const lineHeight = parseInt(getComputedStyle(element).lineHeight) || 24;
+    const visibleHeight = containerRect.height;
+    const elementTop = elementRect.top - containerRect.top;
+
+    // If element is below the visible area or in the last 2 lines
+    if (elementTop > visibleHeight - lineHeight * 2) {
+        // Scroll up to keep previous line visible
+        const scrollAmount = elementTop - lineHeight;
+        contentContainer.scrollBy({
+            top: scrollAmount,
+            behavior: 'smooth'
+        });
+    }
+}
+
+// Check if auto-scroll is needed
+function checkAutoScroll() {
+    const contentContainer = document.querySelector('.content-container');
+    if (!contentContainer) return;
+
+    const containerHeight = contentContainer.clientHeight;
+    const scrollTop = contentContainer.scrollTop;
+    const scrollHeight = contentContainer.scrollHeight;
+
+    // Get current highlighted element
+    const highlighted = document.querySelector('.speech-highlight');
+    if (!highlighted) return;
+
+    const elementRect = highlighted.getBoundingClientRect();
+    const containerRect = contentContainer.getBoundingClientRect();
+    const elementTop = elementRect.top - containerRect.top;
+    const lineHeight = parseInt(getComputedStyle(highlighted).lineHeight) || 24;
+
+    // If element is in the last 2 lines of visible area, scroll
+    if (elementTop > containerHeight - lineHeight * 2) {
+        // Scroll to show the previous line at the top
+        contentContainer.scrollBy({
+            top: lineHeight * 2,
+            behavior: 'smooth'
+        });
+    }
+}
+
+// Update speech button icon
+function updateSpeechButton() {
+    const speechIcon = document.getElementById('speechIcon');
+    if (!speechIcon) return;
+
+    if (isSpeaking) {
+        if (isPaused) {
+            speechIcon.className = 'fas fa-play';
+        } else {
+            speechIcon.className = 'fas fa-pause';
+        }
+    } else {
+        speechIcon.className = 'fas fa-play';
+    }
+}
+
+// Initialize speech synthesis when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    initSpeechSynthesis();
+});
+
+// Stop speech when leaving page
+window.addEventListener('beforeunload', () => {
+    stopSpeech();
+});
