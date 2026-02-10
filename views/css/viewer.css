@@ -247,7 +247,7 @@ body {
 
 /* Content container */
 .content-container {
-  max-width: 1200px;
+  max-width: 1000px;
   margin: 0 auto 0 290px;
   padding: 20px;
   min-height: 100vh;
