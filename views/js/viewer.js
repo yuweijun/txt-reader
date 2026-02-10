@@ -754,12 +754,10 @@ function displayCurrentPage() {
     totalPages = 1;
 }
 
-function scrollToChapter(chapterIndex) {
-    if (!chapters || chapterIndex >= chapters.length) return;
+function scrollToChapter(chapterIndexOrNum) {
+    if (!chapters || chapters.length === 0) return;
 
-    const chapter = chapters[chapterIndex];
     const contentContainer = document.querySelector('.content-container');
-
     if (!contentContainer) return;
 
     // Stop current speech if playing
@@ -767,9 +765,15 @@ function scrollToChapter(chapterIndex) {
         stopSpeech();
     }
 
+    // Find chapter by anchor ID (e.g., "chapter-601") or array index
+    const anchorId = `chapter-${chapterIndexOrNum}`;
+    const chapter = chapters.find(ch => ch.anchorId === anchorId) || chapters[chapterIndexOrNum];
+
+    if (!chapter) return;
+
     // Use anchor to navigate to chapter
-    const anchorId = chapter.anchorId || `chapter-${chapterIndex + 1}`;
-    const anchorElement = document.getElementById(anchorId);
+    const targetAnchorId = chapter.anchorId || anchorId;
+    const anchorElement = document.getElementById(targetAnchorId);
 
     if (anchorElement) {
         // Calculate scroll position relative to content container
@@ -861,13 +865,13 @@ function highlightCurrentChapter() {
 
     if (!currentChapter) return;
 
-    // Find current chapter index
-    const currentIndex = chapters.findIndex(ch => ch.title === currentChapter.title);
-    if (currentIndex === -1) return;
+    // Extract chapter number from anchorId for matching
+    const chapterNum = extractChapterNumber(currentChapter.title);
+    const dataIndex = chapterNum !== null ? chapterNum : chapters.findIndex(ch => ch.title === currentChapter.title);
 
-    // Find and highlight current chapter
+    // Find and highlight current chapter by data-index
     const currentChapterElement = document.querySelector(
-        `.chapter-item[data-index="${currentIndex}"]`
+        `.chapter-item[data-index="${dataIndex}"]`
     );
     if (currentChapterElement) {
         currentChapterElement.classList.add('current');
