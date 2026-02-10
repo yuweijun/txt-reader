@@ -947,6 +947,10 @@ let isPaused = false;
 let speechTextQueue = [];
 let currentSpeechIndex = 0;
 let chineseVoice = null;
+let speechRate = 1.0;
+const MIN_SPEECH_RATE = 0.5;
+const MAX_SPEECH_RATE = 2.0;
+const SPEECH_RATE_STEP = 0.1;
 
 // Initialize speech synthesis
 function initSpeechSynthesis() {
@@ -1024,6 +1028,66 @@ function setupSpeechButton() {
     const speechBtn = document.getElementById('speechBtn');
     if (speechBtn) {
         speechBtn.addEventListener('click', toggleSpeech);
+    }
+
+    // Setup speed control buttons
+    const speedDownBtn = document.getElementById('speechSpeedDownBtn');
+    const speedUpBtn = document.getElementById('speechSpeedUpBtn');
+
+    if (speedDownBtn) {
+        speedDownBtn.addEventListener('click', decreaseSpeechSpeed);
+    }
+    if (speedUpBtn) {
+        speedUpBtn.addEventListener('click', increaseSpeechSpeed);
+    }
+}
+
+// Decrease speech speed
+function decreaseSpeechSpeed() {
+    const newRate = Math.max(MIN_SPEECH_RATE, speechRate - SPEECH_RATE_STEP);
+    if (newRate !== speechRate) {
+        speechRate = Math.round(newRate * 10) / 10;
+        console.log('Speech speed decreased to:', speechRate);
+        applySpeechSpeedChange();
+    }
+}
+
+// Increase speech speed
+function increaseSpeechSpeed() {
+    const newRate = Math.min(MAX_SPEECH_RATE, speechRate + SPEECH_RATE_STEP);
+    if (newRate !== speechRate) {
+        speechRate = Math.round(newRate * 10) / 10;
+        console.log('Speech speed increased to:', speechRate);
+        applySpeechSpeedChange();
+    }
+}
+
+// Apply speed change immediately
+function applySpeechSpeedChange() {
+    // If currently speaking, restart with new speed immediately
+    if (isSpeaking) {
+        const wasPaused = isPaused;
+        const currentIndex = currentSpeechIndex;
+
+        // Cancel current speech
+        speechSynthesis.cancel();
+
+        // Reset state
+        isPaused = false;
+        updateSpeechButton();
+
+        // Resume from current position with new speed
+        currentSpeechIndex = currentIndex;
+        speakNext();
+
+        // If it was paused, pause again
+        if (wasPaused) {
+            setTimeout(() => {
+                speechSynthesis.pause();
+                isPaused = true;
+                updateSpeechButton();
+            }, 100);
+        }
     }
 }
 
@@ -1120,7 +1184,7 @@ function speakNext() {
         speechUtterance.voice = chineseVoice;
     }
     speechUtterance.lang = 'zh-CN';
-    speechUtterance.rate = 1.0;
+    speechUtterance.rate = speechRate;
     speechUtterance.pitch = 1.0;
 
     // Handle speech end
