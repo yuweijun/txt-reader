@@ -67,6 +67,9 @@ class TextReaderDB {
                 fileSize: storyData.fileSize,
                 uploadTime: storyData.uploadTime || new Date().toISOString(),
                 content: storyData.content || '', // Store the actual content
+                processedContent: storyData.processedContent || '', // Store the HTML formatted content
+                chapters: storyData.chapters || [], // Store chapter objects array
+                chapterTitles: storyData.chapterTitles || [], // Store chapter titles array
                 extractedTitle: storyData.extractedTitle || '' // Store the extracted title
             };
 

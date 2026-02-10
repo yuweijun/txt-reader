@@ -50,8 +50,34 @@ PORT=8001 python server.py
 ./start.sh
 ```
 
+### Server Management Guidelines
+
+**Port Checking**: Always check if ports are available before starting servers:
+```bash
+# Check specific port
+lsof -i :8000
+
+# Check multiple ports
+netstat -an | grep LISTEN | grep :800
+
+# Kill process using specific port (if needed)
+lsof -ti:8000 | xargs kill -9
+```
+
+**Development Workflow**:
+1. Check if server is already running: `lsof -i :8000`
+2. If port is free, start server on port 8000
+3. If port is busy, use alternative ports (8001, 8002, etc.)
+4. Document the port being used for team coordination
+
 ### Alternative method using http.server module directly
 ```bash
+# Check if port 8000 is available first
+lsof -i :8000
+
+# If port 8000 is in use, use a different port
+python -m http.server 8001
+
 # Simple HTTP server (serves files as-is, no EJS processing)
 python -m http.server 8000
 

@@ -6,6 +6,7 @@
 class LocalFileProcessor {
     constructor() {
         this.db = new TextReaderDB();
+        this.linesPerFile = 10000; // Split files into chunks of 10,000 lines
     }
 
     /**
@@ -26,19 +27,91 @@ class LocalFileProcessor {
             // Create filename based on title
             const generatedFileName = `${storyTitle}.txt`;
             
-            // Save to database (simple structure, no segments)
+            // Process content with chapter formatting
+            const processingResult = this.processContentWithChapters(fileContent);
+            
+            // Save to database with chapter information
             const storyData = {
                 id: storyId,
                 fileName: generatedFileName,
                 originalFileName: generatedFileName,
                 fileSize: file.size,
                 uploadTime: new Date().toISOString(),
-                content: fileContent, // Store full content only
+                content: fileContent, // Store original content
+                processedContent: processingResult.htmlContent, // Store HTML formatted content
+                chapters: processingResult.chapters, // Store chapter objects
+                chapterTitles: processingResult.chapterTitles, // Store chapter titles array
                 extractedTitle: storyTitle // Store the extracted title
             };
             
             await this.db.addStory(storyData);
             return storyId;
+            
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    /**
+     * Process and split large file into chunks of specified line count
+     */
+    async processAndSplitFile(file) {
+        try {
+            // Read file content
+            const fileContent = await this.readFileAsText(file);
+            const lines = fileContent.split('\n');
+            
+            // If file is small enough, process normally
+            if (lines.length <= this.linesPerFile) {
+                return [await this.processFile(file)];
+            }
+            
+            // Split file into chunks
+            const storyIds = [];
+            const baseFileName = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
+            
+            for (let i = 0; i < lines.length; i += this.linesPerFile) {
+                const chunkLines = lines.slice(i, i + this.linesPerFile);
+                const chunkContent = chunkLines.join('\n');
+                
+                // Generate chunk file name with zero-padded index (00000 prefix)
+                const chunkIndex = Math.floor(i / this.linesPerFile) + 1;
+                const paddedIndex = '00000' + chunkIndex.toString();
+                const chunkFileName = `${baseFileName}-${paddedIndex}.txt`;
+                
+                // Generate story ID for this chunk
+                const storyId = this.generateStoryId();
+                
+                // Extract title from first line of chunk (max 100 characters)
+                const firstLine = chunkLines[0] || '';
+                const storyTitle = firstLine.substring(0, 100).trim() || `Part ${chunkIndex}`;
+                
+                // Process content with chapter formatting
+                const processingResult = this.processContentWithChapters(chunkContent);
+                
+                // Save chunk to database
+                const storyData = {
+                    id: storyId,
+                    fileName: chunkFileName,
+                    originalFileName: chunkFileName,
+                    fileSize: new Blob([chunkContent]).size,
+                    uploadTime: new Date().toISOString(),
+                    content: chunkContent,
+                    processedContent: processingResult.htmlContent,
+                    chapters: processingResult.chapters,
+                    chapterTitles: processingResult.chapterTitles,
+                    extractedTitle: storyTitle,
+                    isSplitFile: true,
+                    splitParentFile: file.name,
+                    splitIndex: chunkIndex,
+                    totalChunks: Math.ceil(lines.length / this.linesPerFile)
+                };
+                
+                await this.db.addStory(storyData);
+                storyIds.push(storyId);
+            }
+            
+            return storyIds;
             
         } catch (error) {
             throw error;
@@ -60,14 +133,20 @@ class LocalFileProcessor {
             // Create filename based on title
             const generatedFileName = `${storyTitle}.txt`;
             
-            // Save to database (simple structure, no segments)
+            // Process content with chapter formatting
+            const processingResult = this.processContentWithChapters(content);
+            
+            // Save to database with chapter information
             const storyData = {
                 id: storyId,
                 fileName: generatedFileName,
                 originalFileName: generatedFileName,
                 fileSize: new Blob([content]).size,
                 uploadTime: new Date().toISOString(),
-                content: content, // Store full content only
+                content: content, // Store original content
+                processedContent: processingResult.htmlContent, // Store HTML formatted content
+                chapters: processingResult.chapters, // Store chapter objects
+                chapterTitles: processingResult.chapterTitles, // Store chapter titles array
                 extractedTitle: storyTitle // Store the extracted title
             };
             
@@ -77,6 +156,168 @@ class LocalFileProcessor {
         } catch (error) {
             throw error;
         }
+    }
+
+    /**
+     * Process content by detecting chapters and extracting chapter list
+     * Returns object with { htmlContent, chapters, chapterTitles }
+     */
+    processContentWithChapters(content) {
+        const lines = content.split('\n');
+        let htmlContent = '';
+        let chapters = []; // Array to store chapter objects
+        let chapterTitles = []; // Array to store just chapter titles
+        let currentChapter = null;
+        let currentContentLines = [];
+        
+        // Common chapter patterns
+        const chapterPatterns = [
+            /^第?\s*([一二三四五六七八九十百千万\d]+)\s*[章节卷部篇回]/, // Chinese chapters
+            /^Chapter\s+(\d+)/i, // English chapters
+            /^Section\s+(\d+)/i, // Sections
+            /^[IVXLCDM]+\.\s/, // Roman numerals
+            /^\d+\.\d+/, // Decimal numbering
+            /^[A-Z][^.]+$/, // Uppercase standalone titles (potential chapters)
+            /^PART\s+[A-Z]+/i, // PART headings
+            /^PROLOGUE/i, // Prologue
+            /^EPILOGUE/i // Epilogue
+        ];
+        
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            
+            // Skip empty lines at the very beginning
+            if (i === 0 && line.trim() === '') continue;
+            
+            // Check if this line is a chapter heading
+            let isChapterHeading = false;
+            for (const pattern of chapterPatterns) {
+                if (pattern.test(line.trim())) {
+                    isChapterHeading = true;
+                    break;
+                }
+            }
+            
+            // Special case: Very long uppercase lines might be chapter titles
+            if (!isChapterHeading && line.trim().length > 5 && line.trim().length < 100 && 
+                line.trim() === line.trim().toUpperCase() && /[A-Z]/.test(line.trim())) {
+                isChapterHeading = true;
+            }
+            
+            if (isChapterHeading) {
+                // Save previous chapter if exists
+                if (currentChapter) {
+                    const chapterContent = currentContentLines.join('\n');
+                    chapters.push({
+                        title: currentChapter,
+                        content: chapterContent,
+                        htmlContent: this.formatChapterContentWithoutTags(currentContentLines)
+                    });
+                    chapterTitles.push(currentChapter);
+                }
+                
+                // Start new chapter
+                currentChapter = line.trim();
+                currentContentLines = [];
+                htmlContent += `<div class="chapter-heading">${this.escapeHtml(currentChapter)}</div>\n`;
+                htmlContent += '<div class="chapter-content">\n';
+            } else if (line.trim() !== '') {
+                // Regular content line - preserve original formatting
+                currentContentLines.push(line);
+                htmlContent += `${this.escapeHtml(line)}\n`;
+            } else if (line.trim() === '' && currentContentLines.length > 0) {
+                // Empty line - preserve spacing
+                currentContentLines.push(line);
+                htmlContent += '\n';
+            }
+        }
+        
+        // Handle last chapter
+        if (currentChapter && currentContentLines.length > 0) {
+            const chapterContent = currentContentLines.join('\n');
+            chapters.push({
+                title: currentChapter,
+                content: chapterContent,
+                htmlContent: this.formatChapterContentWithoutTags(currentContentLines)
+            });
+            chapterTitles.push(currentChapter);
+            htmlContent += '</div>\n'; // Close the last chapter-content div
+        } else if (currentChapter) {
+            // Close the chapter-content div even if no content
+            htmlContent += '</div>\n';
+        }
+        
+        // If no chapters were detected, treat entire content as one chapter
+        if (chapters.length === 0) {
+            const allContentLines = lines.filter(line => line.trim() !== '');
+            htmlContent = '<div class="chapter-content">\n';
+            htmlContent += allContentLines.map(line => this.escapeHtml(line)).join('\n');
+            htmlContent += '\n</div>\n';
+        }
+        
+        return {
+            htmlContent: htmlContent,
+            chapters: chapters,
+            chapterTitles: chapterTitles
+        };
+    }
+    
+    /**
+     * Format content without adding paragraph or break tags - preserve original line breaks
+     */
+    formatChapterContentWithoutTags(lines) {
+        if (lines.length === 0) return '';
+        
+        let html = '<div class="chapter-content">\n';
+        
+        // Simply escape each line and join with newlines - no additional tags
+        html += lines.map(line => this.escapeHtml(line)).join('\n');
+        
+        html += '\n</div>\n';
+        return html;
+    }
+    
+    /**
+     * Format content with simple paragraph grouping (no individual line wrapping)
+     */
+    formatChapterContentSimple(lines) {
+        if (lines.length === 0) return '';
+        
+        let html = '<div class="chapter-content">\n';
+        let currentParagraph = [];
+        
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            
+            if (line.trim() === '') {
+                // Empty line indicates paragraph break
+                if (currentParagraph.length > 0) {
+                    html += `<p>${this.escapeHtml(currentParagraph.join(' '))}</p>\n`;
+                    currentParagraph = [];
+                }
+                html += '<br>\n'; // Add visual spacing
+            } else {
+                // Collect lines for paragraph
+                currentParagraph.push(line.trim());
+            }
+        }
+        
+        // Handle remaining paragraph
+        if (currentParagraph.length > 0) {
+            html += `<p>${this.escapeHtml(currentParagraph.join(' '))}</p>\n`;
+        }
+        
+        html += '</div>\n';
+        return html;
+    }
+    
+    /**
+     * Escape HTML characters for safe display
+     */
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 
     /**

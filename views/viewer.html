@@ -40,7 +40,7 @@
             border-radius: 10px;
             backdrop-filter: blur(10px);
             z-index: 900;
-            display: flex;
+            display: block; /* Changed from none to block */
             flex-direction: column;
             scrollbar-width: thin;
             scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
@@ -266,37 +266,217 @@
         .theme-default .text-content {
             color: #e0e0e0;
         }
+        
+        .theme-default .chapter-heading {
+            color: #4fc3f7;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin: 1.5em 0 0.5em 0;
+            padding: 0.5em 0;
+            border-bottom: 2px solid #4fc3f7;
+        }
+        
+        .theme-default .chapter-content {
+            margin: 0.5em 0 1em 0;
+            line-height: 1.2;
+            white-space: pre-wrap;
+        }
+        
+        .theme-default .chapter-content p {
+            margin: 0;
+            line-height: 1.2;
+        }
 
         .theme-monokai .text-content {
             color: #fcfcfa;
+        }
+        
+        .theme-monokai .chapter-heading {
+            color: #fd971f;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin: 1.5em 0 0.5em 0;
+            padding: 0.5em 0;
+            border-bottom: 2px solid #fd971f;
+        }
+        
+        .theme-monokai .chapter-content {
+            margin: 0.5em 0 1em 0;
+            line-height: 1.2;
+            white-space: pre-wrap;
+        }
+        
+        .theme-monokai .chapter-content p {
+            margin: 0;
+            line-height: 1.2;
         }
 
         .theme-dark .text-content {
             color: #f0f0f0;
         }
+        
+        .theme-dark .chapter-heading {
+            color: #64b5f6;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin: 1.5em 0 0.5em 0;
+            padding: 0.5em 0;
+            border-bottom: 2px solid #64b5f6;
+        }
+        
+        .theme-dark .chapter-content {
+            margin: 0.5em 0 1em 0;
+            line-height: 1.2;
+            white-space: pre-wrap;
+        }
+        
+        .theme-dark .chapter-content p {
+            margin: 0;
+            line-height: 1.2;
+        }
 
         .theme-solarized .text-content {
             color: #839496;
+        }
+        
+        .theme-solarized .chapter-heading {
+            color: #268bd2;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin: 1.5em 0 0.5em 0;
+            padding: 0.5em 0;
+            border-bottom: 2px solid #268bd2;
+        }
+        
+        .theme-solarized .chapter-content {
+            margin: 0.5em 0 1em 0;
+            line-height: 1.2;
+            white-space: pre-wrap;
+        }
+        
+        .theme-solarized .chapter-content p {
+            margin: 0;
+            line-height: 1.2;
         }
 
         .theme-dracula .text-content {
             color: #f8f8f2;
         }
+        
+        .theme-dracula .chapter-heading {
+            color: #bd93f9;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin: 1.5em 0 0.5em 0;
+            padding: 0.5em 0;
+            border-bottom: 2px solid #bd93f9;
+        }
+        
+        .theme-dracula .chapter-content {
+            margin: 0.5em 0 1em 0;
+            line-height: 1.2;
+            white-space: pre-wrap;
+        }
+        
+        .theme-dracula .chapter-content p {
+            margin: 0;
+            line-height: 1.2;
+        }
 
         .theme-nord .text-content {
             color: #eceff4;
+        }
+        
+        .theme-nord .chapter-heading {
+            color: #88c0d0;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin: 1.5em 0 0.5em 0;
+            padding: 0.5em 0;
+            border-bottom: 2px solid #88c0d0;
+        }
+        
+        .theme-nord .chapter-content {
+            margin: 0.5em 0 1em 0;
+            line-height: 1.2;
+            white-space: pre-wrap;
+        }
+        
+        .theme-nord .chapter-content p {
+            margin: 0;
+            line-height: 1.2;
         }
 
         .theme-gruvbox .text-content {
             color: #ebdbb2;
         }
+        
+        .theme-gruvbox .chapter-heading {
+            color: #fabd2f;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin: 1.5em 0 0.5em 0;
+            padding: 0.5em 0;
+            border-bottom: 2px solid #fabd2f;
+        }
+        
+        .theme-gruvbox .chapter-content {
+            margin: 0.5em 0 1em 0;
+            line-height: 1.2;
+            white-space: pre-wrap;
+        }
+        
+        .theme-gruvbox .chapter-content p {
+            margin: 0;
+            line-height: 1.2;
+        }
 
         .theme-onedark .text-content {
             color: #abb2bf;
         }
+        
+        .theme-onedark .chapter-heading {
+            color: #61afef;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin: 1.5em 0 0.5em 0;
+            padding: 0.5em 0;
+            border-bottom: 2px solid #61afef;
+        }
+        
+        .theme-onedark .chapter-content {
+            margin: 0.5em 0 1em 0;
+            line-height: 1.2;
+            white-space: pre-wrap;
+        }
+        
+        .theme-onedark .chapter-content p {
+            margin: 0;
+            line-height: 1.2;
+        }
 
         .theme-darkgreen .text-content {
             color: #c0d6c7;
+        }
+        
+        .theme-darkgreen .chapter-heading {
+            color: #8fbc8f;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin: 1.5em 0 0.5em 0;
+            padding: 0.5em 0;
+            border-bottom: 2px solid #8fbc8f;
+        }
+        
+        .theme-darkgreen .chapter-content {
+            margin: 0.5em 0 1em 0;
+            line-height: 1.2;
+            white-space: pre-wrap;
+        }
+        
+        .theme-darkgreen .chapter-content p {
+            margin: 0;
+            line-height: 1.2;
         }
 
         /* Content container */

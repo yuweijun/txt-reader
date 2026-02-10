@@ -130,7 +130,11 @@ async function initializeViewer() {
     await loadFileContent();
     
     // Initialize chapters sidebar (always visible)
-    document.getElementById('chaptersSidebar').classList.add('visible');
+    const sidebar = document.getElementById('chaptersSidebar');
+    if (sidebar) {
+        sidebar.classList.add('visible');
+        sidebar.style.display = 'block'; // Ensure it's visible
+    }
     
     // Add search functionality
     const searchInput = document.getElementById('chapterSearch');
@@ -218,8 +222,8 @@ function setupAutoHide() {
             showHeader();
             clearTimeout(hideTimeout);
         }
-        // Check if mouse is near left edge (within 50px)
-        else if (e.clientX <= 50 && !isSidebarPinned) {
+        // Check if mouse is near left edge (within 50px) or entering sidebar area
+        else if ((e.clientX <= 50 || isMouseNearSidebar(e)) && !isSidebarPinned) {
             showSidebar();
             clearTimeout(hideTimeout);
         }
@@ -232,6 +236,25 @@ function setupAutoHide() {
                     hideElements();
                 }
             }, 1000);
+        }
+    });
+    
+    // Helper function to check if mouse is near sidebar
+    function isMouseNearSidebar(e) {
+        const sidebar = document.getElementById('chaptersSidebar');
+        if (!sidebar) return false;
+        
+        const rect = sidebar.getBoundingClientRect();
+        // Check if mouse is within 30px of sidebar left edge or inside sidebar
+        return (e.clientX >= rect.left - 30 && e.clientX <= rect.right + 30 && 
+                e.clientY >= rect.top && e.clientY <= rect.bottom);
+    }
+    
+    // Also detect mouse entering the sidebar area from the left
+    document.addEventListener('mouseover', function(e) {
+        if (isMouseNearSidebar(e) && !isSidebarPinned) {
+            showSidebar();
+            clearTimeout(hideTimeout);
         }
     });
     
@@ -351,6 +374,7 @@ function showSidebar() {
     const sidebar = document.getElementById('chaptersSidebar');
     if (sidebar && !isSidebarPinned) {
         sidebar.classList.remove('hidden-left');
+        sidebar.style.display = 'block'; // Ensure it's visible
         isSidebarHidden = false;
     }
 }
@@ -392,14 +416,40 @@ function togglePinSidebar() {
 async function loadFileContent() {
     try {
         // Get story content from local database
-        fileContent = await window.localFileProcessor.getStoryContent(storyId);
-
-        // Parse chapters from content
-        parseChapters();
-
-        // Display current page content
-        displayCurrentPage();
-
+        const storyData = await window.localFileProcessor.db.getStoryById(storyId);
+        if (!storyData) {
+            throw new Error('Story not found');
+        }
+        
+        // Use processed content if available, otherwise fall back to raw content
+        fileContent = storyData.processedContent || storyData.content || '';
+        
+        // Parse chapters regardless of content type to populate sidebar
+        // Use raw content for chapter parsing since processed content already has HTML structure
+        const contentForParsing = storyData.content || '';
+        if (contentForParsing) {
+            // Temporarily set fileContent for parsing
+            const originalFileContent = fileContent;
+            fileContent = contentForParsing;
+            parseChapters();
+            // Restore original fileContent
+            fileContent = originalFileContent;
+        }
+        
+        // If we have processed content, display it directly as HTML
+        if (storyData.processedContent) {
+            const textContent = document.getElementById('textContent');
+            if (textContent) {
+                textContent.innerHTML = fileContent;
+            }
+        } else {
+            // Display raw content
+            displayCurrentPage();
+        }
+        
+        // Update chapters list in sidebar
+        updateChaptersList();
+        
         // Set initial current chapter and position
         if (readingHistory) {
             // Restore from reading history
@@ -558,14 +608,16 @@ function parseChapters() {
             charLength: fileContent.length
         });
     }
-
+    
     // Update chapters list in sidebar
     updateChaptersList();
 }
 
 function updateChaptersList() {
     const chapterList = document.getElementById('chapterList');
-    if (!chapterList) return;
+    if (!chapterList) {
+        return;
+    }
 
     chapterList.innerHTML = '';
 

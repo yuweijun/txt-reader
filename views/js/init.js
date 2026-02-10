@@ -132,7 +132,29 @@ async function processSelectedFile() {
     try {
         showLoading(`Processing file: ${file.name}...`);
         
-        const storyId = await appState.processor.processFile(file);
+        // Check if file should be split (more than 10,000 lines)
+        const fileContent = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (event) => resolve(event.target.result);
+            reader.onerror = (error) => reject(error);
+            reader.readAsText(file, 'UTF-8');
+        });
+        
+        const lineCount = fileContent.split('\n').length;
+        let storyIds = [];
+        
+        if (lineCount > 10000) {
+            // Use splitting functionality
+            storyIds = await appState.processor.processAndSplitFile(file);
+            hideLoading();
+            showSuccess(`File "${file.name}" split into ${storyIds.length} parts successfully!`);
+        } else {
+            // Process normally
+            const storyId = await appState.processor.processFile(file);
+            storyIds = [storyId];
+            hideLoading();
+            showSuccess(`File "${file.name}" processed successfully!`);
+        }
         
         // Clear input
         fileInput.value = '';
@@ -141,11 +163,12 @@ async function processSelectedFile() {
         // Reload stories
         await loadStories();
         
-        hideLoading();
-        showSuccess(`File "${file.name}" processed successfully!`);
-        
-        // Navigate to viewer
-        window.location.href = `viewer.html#view/${storyId}`;
+        // Navigate to first part if multiple parts were created
+        if (storyIds.length > 1) {
+            window.location.href = `viewer.html#view/${storyIds[0]}`;
+        } else {
+            window.location.href = `viewer.html#view/${storyIds[0]}`;
+        }
         
     } catch (error) {
         hideLoading();
@@ -218,12 +241,15 @@ function displayStories() {
                         <h5 class="mb-2">
                             <i class="fas fa-file-alt text-primary"></i>
                             ${escapeHtml(story.customTitle || story.extractedTitle || story.originalFileName.replace(/\.txt$/i, ''))}
+                            ${story.isSplitFile ? `<span class="badge bg-info ms-2">Part ${story.splitIndex}/${story.totalChunks}</span>` : ''}
                         </h5>
                         <div class="file-info">
                             <i class="fas fa-calendar"></i> ${uploadDate} |
                             <i class="fas fa-weight-hanging"></i> ${fileSize}
                             ${story.segmentCount && story.segmentCount > 1 ? 
                                 `| <i class="fas fa-cut"></i> ${story.segmentCount} segments` : ''}
+                            ${story.isSplitFile ? 
+                                `| <i class="fas fa-code-branch"></i> Split from ${story.splitParentFile}` : ''}
                         </div>
                     </div>
                     <div class="btn-group" role="group">
