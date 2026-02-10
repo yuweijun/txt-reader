@@ -328,9 +328,9 @@ class LocalFileProcessor {
                     htmlContent += '<div class="chapter-content">\n';
                     inChapterContent = true;
                 }
-                // Only wrap non-empty lines in div
+                // Only wrap non-empty lines in div with chapter-content-row class
                 if (line.trim() !== '') {
-                    htmlContent += `<div>${this.escapeHtml(line)}</div>\n`;
+                    htmlContent += `<div class="chapter-content-row">${this.escapeHtml(line)}</div>\n`;
                 } else {
                     htmlContent += '\n';
                 }

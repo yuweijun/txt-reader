@@ -238,6 +238,13 @@ body {
   line-height: 1.2;
 }
 
+/* Chapter content row - individual line wrapper */
+.chapter-content-row {
+  margin: 0;
+  padding: 0;
+  line-height: 1.2;
+}
+
 /* Content container */
 .content-container {
   max-width: 1200px;
