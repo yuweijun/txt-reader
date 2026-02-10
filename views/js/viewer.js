@@ -237,6 +237,58 @@ function truncateChapterTitle(title) {
     return title;
 }
 
+/**
+ * Convert Chinese number to Arabic numeral
+ * Supports: 零一二三四五六七八九十百千万亿
+ */
+function chineseToArabic(chinese) {
+    const chineseNums = {
+        '零': 0, '一': 1, '二': 2, '三': 3, '四': 4,
+        '五': 5, '六': 6, '七': 7, '八': 8, '九': 9,
+        '十': 10, '百': 100, '千': 1000, '万': 10000, '亿': 100000000
+    };
+
+    let result = 0;
+    let temp = 0;
+
+    for (let i = 0; i < chinese.length; i++) {
+        const char = chinese[i];
+        const num = chineseNums[char];
+
+        if (num === undefined) continue;
+
+        if (num >= 10) {
+            if (temp === 0) temp = 1;
+            result += temp * num;
+            temp = 0;
+        } else {
+            temp = temp * 10 + num;
+        }
+    }
+
+    return result + temp;
+}
+
+/**
+ * Extract chapter number from chapter title
+ * Supports both Chinese and Arabic numerals
+ */
+function extractChapterNumber(title) {
+    // Try to match Chinese number pattern: 第*章/回/节
+    const chineseMatch = title.match(/第\s*([一二三四五六七八九十百千万零]+)\s*[章节卷部篇回]/);
+    if (chineseMatch) {
+        return chineseToArabic(chineseMatch[1]);
+    }
+
+    // Try to match Arabic number pattern: 第123章/Chapter 123
+    const arabicMatch = title.match(/第\s*(\d+)\s*[章节卷部篇回]|Chapter\s+(\d+)/i);
+    if (arabicMatch) {
+        return parseInt(arabicMatch[1] || arabicMatch[2], 10);
+    }
+
+    return null;
+}
+
 // Auto-hide functionality
 function setupAutoHide() {
     const header = document.querySelector('.navigation-header');
@@ -656,7 +708,9 @@ function updateChaptersList() {
         const li = document.createElement('li');
         li.className = 'chapter-item';
         li.dataset.page = chapter.pageNumber;
-        li.dataset.index = chapter.originalIndex !== undefined ? chapter.originalIndex : index;
+        // Use extracted chapter number for data-index, fallback to array index
+        const chapterNum = extractChapterNumber(chapter.title);
+        li.dataset.index = chapterNum !== null ? chapterNum : index;
         li.textContent = truncateChapterTitle(chapter.title);
         li.title = chapter.title; // Show full title on hover
         li.addEventListener('click', function() {
