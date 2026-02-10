@@ -1165,32 +1165,73 @@ function highlightSpeechLine(index) {
         el.classList.remove('speech-highlight');
     });
 
-    // Find and highlight current line
     const textContent = document.getElementById('textContent');
-    if (!textContent) return;
+    if (!textContent || !speechTextQueue[index]) return;
 
-    // Get all text nodes
+    const targetText = speechTextQueue[index].trim();
+    if (!targetText) return;
+
+    // Get all chapter-content divs
+    const contentDivs = textContent.querySelectorAll('.chapter-content');
+    if (contentDivs.length === 0) {
+        // Fallback: try to find in entire text content
+        highlightInElement(textContent, targetText);
+        return;
+    }
+
+    // Search in each content div
+    for (const div of contentDivs) {
+        if (highlightInElement(div, targetText)) {
+            return;
+        }
+    }
+}
+
+// Helper function to highlight text within an element
+function highlightInElement(element, targetText) {
     const walker = document.createTreeWalker(
-        textContent,
+        element,
         NodeFilter.SHOW_TEXT,
         null,
         false
     );
 
-    let currentIndex = 0;
     let node;
     while (node = walker.nextNode()) {
-        if (node.textContent.trim() === speechTextQueue[index]) {
+        const nodeText = node.textContent;
+        const trimmedText = nodeText.trim();
+
+        // Check for exact match or if target is part of this node
+        if (trimmedText === targetText || nodeText.includes(targetText)) {
             const parent = node.parentElement;
-            if (parent) {
+            if (parent && parent !== element) {
                 parent.classList.add('speech-highlight');
-                // Scroll to keep line in view
                 scrollToSpeechLine(parent);
+                return true;
+            } else if (nodeText.includes(targetText)) {
+                // Wrap the matching text in a span
+                const span = document.createElement('span');
+                span.className = 'speech-highlight';
+                const beforeText = nodeText.substring(0, nodeText.indexOf(targetText));
+                const afterText = nodeText.substring(nodeText.indexOf(targetText) + targetText.length);
+
+                const parent = node.parentNode;
+                if (beforeText) {
+                    parent.insertBefore(document.createTextNode(beforeText), node);
+                }
+                span.textContent = targetText;
+                parent.insertBefore(span, node);
+                if (afterText) {
+                    parent.insertBefore(document.createTextNode(afterText), node);
+                }
+                parent.removeChild(node);
+
+                scrollToSpeechLine(span);
+                return true;
             }
-            break;
         }
-        currentIndex++;
     }
+    return false;
 }
 
 // Scroll to keep speech line visible
