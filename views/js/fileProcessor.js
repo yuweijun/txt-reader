@@ -34,7 +34,7 @@ class LocalFileProcessor {
             const storyData = {
                 id: storyId,
                 fileName: generatedFileName,
-                originalFileName: generatedFileName,
+                originalFileName: file.name,
                 fileSize: file.size,
                 uploadTime: new Date().toISOString(),
                 content: fileContent, // Store original content
@@ -188,7 +188,7 @@ class LocalFileProcessor {
             const storyData = {
                 id: storyId,
                 fileName: generatedFileName,
-                originalFileName: generatedFileName,
+                originalFileName: fileName,
                 fileSize: new Blob([content]).size,
                 uploadTime: new Date().toISOString(),
                 content: content, // Store original content
