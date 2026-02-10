@@ -14,7 +14,7 @@
 }
 
 .pinned {
-  transform: translateX(0) !important;
+  transform: translateX(0) translateY(0) !important;
   opacity: 1 !important;
 }
 

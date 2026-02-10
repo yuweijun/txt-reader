@@ -12,6 +12,7 @@ let storyId = null;
 let isHeaderHidden = false;  // Start visible
 let isSidebarHidden = false; // Start visible
 let isSidebarPinned = false;
+let isHeaderPinned = false;
 let lastScrollTop = 0;
 let lastScrollLeft = 0;
 let hideTimeout = null;
@@ -178,15 +179,19 @@ async function initializeViewer() {
     
     // Load saved pin state
     const savedPinState = localStorage.getItem('sidebarPinned');
-    if (savedPinState === 'true') {
+    const savedHeaderPinState = localStorage.getItem('headerPinned');
+    if (savedPinState === 'true' || savedHeaderPinState === 'true') {
         isSidebarPinned = true;
+        isHeaderPinned = true;
         const sidebar = document.getElementById('chaptersSidebar');
+        const header = document.querySelector('.navigation-header');
         const pinIcon = document.getElementById('pinIcon');
-        if (sidebar && pinIcon) {
+        if (sidebar && header && pinIcon) {
             sidebar.classList.add('pinned');
+            header.classList.add('pinned');
             pinIcon.classList.remove('fa-thumbtack');
             pinIcon.classList.add('fa-lock');
-            pinIcon.parentElement.title = 'Unpin sidebar';
+            pinIcon.parentElement.title = 'Unpin sidebar and header';
         }
     }
 }
@@ -359,7 +364,9 @@ function showElements() {
 }
 
 function hideElements() {
-    hideHeader();
+    if (!isHeaderPinned) {
+        hideHeader();
+    }
     if (!isSidebarPinned) {
         hideSidebar();
     }
@@ -375,7 +382,7 @@ function showHeader() {
 
 function hideHeader() {
     const header = document.querySelector('.navigation-header');
-    if (header && !isHeaderHidden) {
+    if (header && !isHeaderHidden && !isHeaderPinned) {
         header.classList.add('hidden-top');
         isHeaderHidden = true;
     }
@@ -400,28 +407,34 @@ function hideSidebar() {
 
 function togglePinSidebar() {
     const sidebar = document.getElementById('chaptersSidebar');
+    const header = document.querySelector('.navigation-header');
     const pinIcon = document.getElementById('pinIcon');
-    
-    if (!sidebar || !pinIcon) return;
-    
+
+    if (!sidebar || !header || !pinIcon) return;
+
     isSidebarPinned = !isSidebarPinned;
-    
+    isHeaderPinned = isSidebarPinned; // Pin header together with sidebar
+
     if (isSidebarPinned) {
         sidebar.classList.add('pinned');
+        header.classList.add('pinned');
         pinIcon.classList.remove('fa-thumbtack');
         pinIcon.classList.add('fa-lock');
-        pinIcon.parentElement.title = 'Unpin sidebar';
+        pinIcon.parentElement.title = 'Unpin sidebar and header';
         showSidebar(); // Ensure sidebar is visible when pinned
+        showHeader(); // Ensure header is visible when pinned
     } else {
         sidebar.classList.remove('pinned');
+        header.classList.remove('pinned');
         pinIcon.classList.remove('fa-lock');
         pinIcon.classList.add('fa-thumbtack');
-        pinIcon.parentElement.title = 'Pin sidebar';
-        // Sidebar will auto-hide based on mouse movement
+        pinIcon.parentElement.title = 'Pin sidebar and header';
+        // Sidebar and header will auto-hide based on mouse movement
     }
-    
+
     // Save pin state to localStorage
     localStorage.setItem('sidebarPinned', isSidebarPinned.toString());
+    localStorage.setItem('headerPinned', isHeaderPinned.toString());
 }
 
 async function loadFileContent() {
