@@ -210,6 +210,33 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+/**
+ * Truncate chapter title to max 15 Chinese characters
+ * Each Chinese character counts as 1, English characters count as 0.5
+ */
+function truncateChapterTitle(title) {
+    const maxChars = 15;
+    let charCount = 0;
+    let truncateIndex = title.length;
+
+    for (let i = 0; i < title.length; i++) {
+        // Check if character is Chinese (CJK Unified Ideographs range)
+        const char = title[i];
+        const isChinese = /[\u4e00-\u9fa5]/.test(char);
+        charCount += isChinese ? 1 : 0.5;
+
+        if (charCount > maxChars) {
+            truncateIndex = i;
+            break;
+        }
+    }
+
+    if (truncateIndex < title.length) {
+        return title.substring(0, truncateIndex) + '...';
+    }
+    return title;
+}
+
 // Auto-hide functionality
 function setupAutoHide() {
     const header = document.querySelector('.navigation-header');
@@ -630,7 +657,8 @@ function updateChaptersList() {
         li.className = 'chapter-item';
         li.dataset.page = chapter.pageNumber;
         li.dataset.index = chapter.originalIndex !== undefined ? chapter.originalIndex : index;
-        li.textContent = chapter.title;
+        li.textContent = truncateChapterTitle(chapter.title);
+        li.title = chapter.title; // Show full title on hover
         li.addEventListener('click', function() {
             const chapterIndex = parseInt(this.dataset.index);
             scrollToChapter(chapterIndex);
