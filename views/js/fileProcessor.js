@@ -105,7 +105,7 @@ class LocalFileProcessor {
                 const storyData = {
                     id: storyId,
                     fileName: chunkFileName,
-                    originalFileName: chunkFileName,
+                    originalFileName: file.name,
                     fileSize: new Blob([chunkContent]).size,
                     uploadTime: new Date().toISOString(),
                     content: chunkContent,
@@ -164,6 +164,15 @@ class LocalFileProcessor {
         }
 
         return chapterBoundaries;
+    }
+
+    /**
+     * Public method to detect chapter boundaries from file content
+     * Returns array of { lineIndex, title } objects for each chapter
+     */
+    detectChapters(content) {
+        const lines = content.split('\n');
+        return this.detectChapterBoundaries(lines);
     }
 
     /**

@@ -147,7 +147,7 @@ async function processSelectedFile() {
     try {
         showLoading(`Processing file: ${file.name}...`);
 
-        // Check if file should be split (more than 10,000 lines)
+        // Read file content to check chapter count
         const fileContent = await new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = (event) => resolve(event.target.result);
@@ -155,11 +155,12 @@ async function processSelectedFile() {
             reader.readAsText(file, 'UTF-8');
         });
 
-        const lineCount = fileContent.split('\n').length;
+        // Detect chapters to decide if splitting is needed
+        const chapterBoundaries = appState.processor.detectChapters(fileContent);
         let storyIds = [];
 
-        if (lineCount > 10000) {
-            // Use splitting functionality
+        if (chapterBoundaries.length > 50) {
+            // Use splitting functionality for files with more than 50 chapters
             storyIds = await appState.processor.processAndSplitFile(file);
             hideLoading();
             showSuccess(`File "${file.name}" split into ${storyIds.length} parts successfully!`);
