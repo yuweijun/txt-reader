@@ -679,10 +679,15 @@ function parseChapters() {
         for (const pattern of chapterPatterns) {
             if (pattern.test(line)) {
                 chapterIndex++;
+                // Extract chapter number from title for anchor ID
+                const chapterNum = extractChapterNumber(line);
+                const anchorId = chapterNum !== null
+                    ? `chapter-${chapterNum}`
+                    : `chapter-${chapterIndex}`;
                 chapters.push({
                     id: `chapter_${chapters.length}`,
                     title: line,
-                    anchorId: `chapter-${chapterIndex}`
+                    anchorId: anchorId
                 });
                 break;
             }
