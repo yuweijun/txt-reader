@@ -159,25 +159,24 @@ class LocalFileProcessor {
 
     /**
      * Process content by detecting chapters and extracting chapter list
+     * Only matched chapter patterns get anchors and are added to chapter list
      * Returns object with { htmlContent, chapters, chapterTitles }
      */
     processContentWithChapters(content) {
         const lines = content.split('\n');
         let htmlContent = '';
-        let chapters = []; // Array to store chapter objects
-        let chapterTitles = []; // Array to store just chapter titles
-        let currentChapter = null;
-        let currentContentLines = [];
+        let chapters = [];
+        let chapterTitles = [];
         let chapterIndex = 0;
+        let inChapterContent = false;
 
-        // Common chapter patterns
+        // Common chapter patterns - only these get anchors
         const chapterPatterns = [
             /^第?\s*([一二三四五六七八九十百千万\d]+)\s*[章节卷部篇回]/, // Chinese chapters
             /^Chapter\s+(\d+)/i, // English chapters
             /^Section\s+(\d+)/i, // Sections
             /^[IVXLCDM]+\.\s/, // Roman numerals
             /^\d+\.\d+/, // Decimal numbering
-            /^[A-Z][^.]+$/, // Uppercase standalone titles (potential chapters)
             /^PART\s+[A-Z]+/i, // PART headings
             /^PROLOGUE/i, // Prologue
             /^EPILOGUE/i // Epilogue
@@ -185,85 +184,61 @@ class LocalFileProcessor {
 
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
+            const trimmedLine = line.trim();
 
             // Skip empty lines at the very beginning
-            if (i === 0 && line.trim() === '') continue;
+            if (i === 0 && trimmedLine === '') continue;
 
-            // Check if this line is a chapter heading
+            // Check if this line matches chapter pattern
             let isChapterHeading = false;
             for (const pattern of chapterPatterns) {
-                if (pattern.test(line.trim())) {
+                if (pattern.test(trimmedLine)) {
                     isChapterHeading = true;
                     break;
                 }
             }
 
-            // Special case: Very long uppercase lines might be chapter titles
-            if (!isChapterHeading && line.trim().length > 5 && line.trim().length < 100 &&
-                line.trim() === line.trim().toUpperCase() && /[A-Z]/.test(line.trim())) {
-                isChapterHeading = true;
-            }
-
             if (isChapterHeading) {
-                // Save previous chapter if exists
-                if (currentChapter) {
-                    const chapterContent = currentContentLines.join('\n');
-                    chapters.push({
-                        title: currentChapter,
-                        content: chapterContent,
-                        htmlContent: this.formatChapterContentWithoutTags(currentContentLines),
-                        anchorId: `chapter-${chapterIndex}`
-                    });
-                    chapterTitles.push(currentChapter);
+                // Close previous chapter content if exists
+                if (inChapterContent) {
+                    htmlContent += '</div>\n';
+                    inChapterContent = false;
                 }
 
                 // Start new chapter
                 chapterIndex++;
-                currentChapter = line.trim();
-                currentContentLines = [];
-                htmlContent += `<div id="chapter-${chapterIndex}" class="chapter-anchor"></div>\n`;
-                htmlContent += `<div class="chapter-heading">${this.escapeHtml(currentChapter)}</div>\n`;
+                const anchorId = `chapter-${chapterIndex}`;
+
+                // Add to chapter list
+                chapters.push({
+                    title: trimmedLine,
+                    anchorId: anchorId
+                });
+                chapterTitles.push(trimmedLine);
+
+                // Add anchor and heading to HTML
+                htmlContent += `<div id="${anchorId}" class="chapter-anchor"></div>\n`;
+                htmlContent += `<div class="chapter-heading">${this.escapeHtml(trimmedLine)}</div>\n`;
                 htmlContent += '<div class="chapter-content">\n';
-            } else if (line.trim() !== '') {
-                // Regular content line - preserve original formatting
-                currentContentLines.push(line);
+                inChapterContent = true;
+            } else {
+                // Regular content line
+                if (!inChapterContent) {
+                    // Content before first chapter - wrap in default content div
+                    htmlContent += '<div class="chapter-content">\n';
+                    inChapterContent = true;
+                }
                 htmlContent += `${this.escapeHtml(line)}\n`;
-            } else if (line.trim() === '' && currentContentLines.length > 0) {
-                // Empty line - preserve spacing
-                currentContentLines.push(line);
-                htmlContent += '\n';
             }
         }
 
-        // Handle last chapter
-        if (currentChapter && currentContentLines.length > 0) {
-            const chapterContent = currentContentLines.join('\n');
-            chapters.push({
-                title: currentChapter,
-                content: chapterContent,
-                htmlContent: this.formatChapterContentWithoutTags(currentContentLines),
-                anchorId: `chapter-${chapterIndex}`
-            });
-            chapterTitles.push(currentChapter);
-            htmlContent += '</div>\n'; // Close the last chapter-content div
-        } else if (currentChapter) {
-            // Close the chapter-content div even if no content
+        // Close final chapter content div
+        if (inChapterContent) {
             htmlContent += '</div>\n';
         }
 
-        // If no chapters were detected, treat entire content as one chapter
+        // If no chapters were detected, create a default entry
         if (chapters.length === 0) {
-            const allContentLines = lines.filter(line => line.trim() !== '');
-            htmlContent = '<div id="chapter-1" class="chapter-anchor"></div>\n';
-            htmlContent += '<div class="chapter-content">\n';
-            htmlContent += allContentLines.map(line => this.escapeHtml(line)).join('\n');
-            htmlContent += '\n</div>\n';
-            chapters.push({
-                title: '全文',
-                content: allContentLines.join('\n'),
-                htmlContent: this.formatChapterContentWithoutTags(allContentLines),
-                anchorId: 'chapter-1'
-            });
             chapterTitles.push('全文');
         }
 

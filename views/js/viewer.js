@@ -561,63 +561,36 @@ function getCurrentChapterFromScrollPosition(scrollPosition) {
 function parseChapters() {
     chapters = [];
     const lines = fileContent.split('\n');
-    let lineNumber = 0;
-    let charPosition = 0;
     let chapterIndex = 0;
 
-    // Common chapter patterns
+    // Common chapter patterns - must match fileProcessor.js patterns
     const chapterPatterns = [
         /^第?\s*([一二三四五六七八九十百千万\d]+)\s*[章节卷部篇回]/, // Chinese chapters
         /^Chapter\s+(\d+)/i, // English chapters
         /^Section\s+(\d+)/i, // Sections
         /^[IVXLCDM]+\.\s/, // Roman numerals
-        /^\d+\.\d+/ // Decimal numbering
+        /^\d+\.\d+/, // Decimal numbering
+        /^PART\s+[A-Z]+/i, // PART headings
+        /^PROLOGUE/i, // Prologue
+        /^EPILOGUE/i // Epilogue
     ];
 
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
-        if (line) {
-            // Check for chapter patterns
-            for (const pattern of chapterPatterns) {
-                if (pattern.test(line)) {
-                    chapterIndex++;
-                    chapters.push({
-                        id: `chapter_${chapters.length}`,
-                        title: line,
-                        pageNumber: lineNumber,
-                        charPosition: charPosition,
-                        charLength: 0,
-                        anchorId: `chapter-${chapterIndex}`
-                    });
-                    break;
-                }
+        if (!line) continue;
+
+        // Check for chapter patterns
+        for (const pattern of chapterPatterns) {
+            if (pattern.test(line)) {
+                chapterIndex++;
+                chapters.push({
+                    id: `chapter_${chapters.length}`,
+                    title: line,
+                    anchorId: `chapter-${chapterIndex}`
+                });
+                break;
             }
         }
-        charPosition += lines[i].length + 1;
-        lineNumber++;
-    }
-
-    // Calculate chapter lengths
-    for (let i = 0; i < chapters.length; i++) {
-        const chapter = chapters[i];
-        const nextChapter = chapters[i + 1];
-        if (nextChapter) {
-            chapter.charLength = nextChapter.charPosition - chapter.charPosition;
-        } else {
-            chapter.charLength = fileContent.length - chapter.charPosition;
-        }
-    }
-
-    // If no chapters found, create one for the whole document
-    if (chapters.length === 0) {
-        chapters.push({
-            id: 'full_text',
-            title: '全文',
-            pageNumber: 0,
-            charPosition: 0,
-            charLength: fileContent.length,
-            anchorId: 'chapter-1'
-        });
     }
 
     // Update chapters list in sidebar
