@@ -10,7 +10,8 @@ const appState = {
     totalPages: 1,
     allStories: [],
     processor: null,
-    db: null
+    db: null,
+    isProcessing: false
 };
 
 document.addEventListener('DOMContentLoaded', async function() {
@@ -79,59 +80,73 @@ function setupEventListeners() {
 }
 
 async function processTextContent() {
+    if (appState.isProcessing) return;
+
     const content = document.getElementById('textContent').value.trim();
     if (!content) {
         showError('Please enter some text content');
         return;
     }
-    
+
+    appState.isProcessing = true;
+    const processTextBtn = document.getElementById('processTextBtn');
+    if (processTextBtn) processTextBtn.disabled = true;
+
     try {
         showLoading('Processing text content...');
-        
+
         const storyId = await appState.processor.processTextContent(content);
-        
+
         // Clear input
         document.getElementById('textContent').value = '';
-        document.getElementById('processTextBtn').disabled = true;
-        
+
         // Reload stories
         await loadStories();
-        
+
         hideLoading();
         showSuccess('Text content processed successfully!');
-        
+
         // Navigate to viewer
         window.location.href = `viewer.html#view/${storyId}`;
-        
+
     } catch (error) {
         hideLoading();
         showError('Failed to process text content: ' + error.message);
+        if (processTextBtn) processTextBtn.disabled = false;
+    } finally {
+        appState.isProcessing = false;
     }
 }
 
 async function processSelectedFile() {
+    if (appState.isProcessing) return;
+
     const fileInput = document.getElementById('fileInput');
     if (!fileInput.files || fileInput.files.length === 0) {
         showError('Please select a file');
         return;
     }
-    
+
     const file = fileInput.files[0];
-    
+
     // Validate file
     if (file.type !== 'text/plain' && !file.name.toLowerCase().endsWith('.txt')) {
         showError('Only text files (.txt) are allowed!');
         return;
     }
-    
+
     if (file.size > 100 * 1024 * 1024) {
         showError('File size exceeds 100MB limit!');
         return;
     }
-    
+
+    appState.isProcessing = true;
+    const processFileBtn = document.getElementById('processFileBtn');
+    if (processFileBtn) processFileBtn.disabled = true;
+
     try {
         showLoading(`Processing file: ${file.name}...`);
-        
+
         // Check if file should be split (more than 10,000 lines)
         const fileContent = await new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -139,10 +154,10 @@ async function processSelectedFile() {
             reader.onerror = (error) => reject(error);
             reader.readAsText(file, 'UTF-8');
         });
-        
+
         const lineCount = fileContent.split('\n').length;
         let storyIds = [];
-        
+
         if (lineCount > 10000) {
             // Use splitting functionality
             storyIds = await appState.processor.processAndSplitFile(file);
@@ -155,24 +170,22 @@ async function processSelectedFile() {
             hideLoading();
             showSuccess(`File "${file.name}" processed successfully!`);
         }
-        
+
         // Clear input
         fileInput.value = '';
-        document.getElementById('processFileBtn').disabled = true;
-        
+
         // Reload stories
         await loadStories();
-        
+
         // Navigate to first part if multiple parts were created
-        if (storyIds.length > 1) {
-            window.location.href = `viewer.html#view/${storyIds[0]}`;
-        } else {
-            window.location.href = `viewer.html#view/${storyIds[0]}`;
-        }
-        
+        window.location.href = `viewer.html#view/${storyIds[0]}`;
+
     } catch (error) {
         hideLoading();
         showError('Failed to process file: ' + error.message);
+        if (processFileBtn) processFileBtn.disabled = false;
+    } finally {
+        appState.isProcessing = false;
     }
 }
 
