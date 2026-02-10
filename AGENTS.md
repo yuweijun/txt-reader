@@ -20,13 +20,13 @@ Pure frontend text reader web application that provides rich text viewing capabi
 
 ### Git Commit Guidelines
 
-**Do not add AI attribution** to commit messages such as:
+**Do not add AI attribution** to commit messages. This includes:
 - `co-authored-by: AI Assistant`
 - `Generated with [AI Tool Name]`
 - `AI-assisted commit`
 - Any other AI-generated attribution metadata
 
-Keep commit messages focused on describing the actual changes made to the codebase.
+When using the Bash tool to run `git commit`, do not include any AI attribution markers in the commit message. Keep commit messages focused on describing the actual changes made to the codebase.
 
 ### Package Management
 

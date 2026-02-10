@@ -259,10 +259,11 @@ function setupAutoHide() {
     });
     
     // Scroll detection for main content
+    let scrollTimer = null;
     contentContainer.addEventListener('scroll', function() {
         const currentScrollTop = contentContainer.scrollTop;
         const currentScrollLeft = contentContainer.scrollLeft;
-        
+
         // Show header when scrolling up
         if (currentScrollTop < lastScrollTop) {
             showHeader();
@@ -271,9 +272,15 @@ function setupAutoHide() {
         else if (currentScrollTop > lastScrollTop && currentScrollTop > 100) {
             hideHeader();
         }
-        
+
         lastScrollTop = currentScrollTop;
         lastScrollLeft = currentScrollLeft;
+
+        // Update current chapter highlight on scroll (debounced)
+        clearTimeout(scrollTimer);
+        scrollTimer = setTimeout(() => {
+            updateCurrentChapterFromScroll();
+        }, 100);
     });
     
     // Scroll detection for chapters sidebar
@@ -556,6 +563,7 @@ function parseChapters() {
     const lines = fileContent.split('\n');
     let lineNumber = 0;
     let charPosition = 0;
+    let chapterIndex = 0;
 
     // Common chapter patterns
     const chapterPatterns = [
@@ -572,12 +580,14 @@ function parseChapters() {
             // Check for chapter patterns
             for (const pattern of chapterPatterns) {
                 if (pattern.test(line)) {
+                    chapterIndex++;
                     chapters.push({
                         id: `chapter_${chapters.length}`,
                         title: line,
                         pageNumber: lineNumber,
                         charPosition: charPosition,
-                        charLength: 0
+                        charLength: 0,
+                        anchorId: `chapter-${chapterIndex}`
                     });
                     break;
                 }
@@ -605,10 +615,11 @@ function parseChapters() {
             title: '全文',
             pageNumber: 0,
             charPosition: 0,
-            charLength: fileContent.length
+            charLength: fileContent.length,
+            anchorId: 'chapter-1'
         });
     }
-    
+
     // Update chapters list in sidebar
     updateChaptersList();
 }
@@ -675,46 +686,33 @@ function scrollToChapter(chapterIndex) {
     if (!chapters || chapterIndex >= chapters.length) return;
 
     const chapter = chapters[chapterIndex];
-    const textContent = document.getElementById('textContent');
     const contentContainer = document.querySelector('.content-container');
 
-    if (!textContent || !contentContainer) return;
+    if (!contentContainer) return;
 
-    // Find the chapter title position in the text content
-    const chapterTitle = chapter.title;
-    const textContentStr = textContent.textContent;
+    // Use anchor to navigate to chapter
+    const anchorId = chapter.anchorId || `chapter-${chapterIndex + 1}`;
+    const anchorElement = document.getElementById(anchorId);
 
-    // Find the position of the chapter title in the text
-    const titleIndex = findChapterTitlePosition(textContentStr, chapterTitle);
-
-    if (titleIndex !== -1) {
-        // Calculate the approximate scroll position
-        const tempDiv = document.createElement('div');
-        tempDiv.style.cssText = `
-            position: absolute;
-            visibility: hidden;
-            height: auto;
-            width: ${textContent.offsetWidth}px;
-            font-size: ${getComputedStyle(textContent).fontSize};
-            font-family: ${getComputedStyle(textContent).fontFamily};
-            line-height: ${getComputedStyle(textContent).lineHeight};
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        `;
-        tempDiv.textContent = textContentStr.substring(0, titleIndex);
-        document.body.appendChild(tempDiv);
-
-        const scrollPosition = tempDiv.offsetHeight;
-        document.body.removeChild(tempDiv);
+    if (anchorElement) {
+        // Calculate scroll position relative to content container
+        const containerRect = contentContainer.getBoundingClientRect();
+        const anchorRect = anchorElement.getBoundingClientRect();
+        const scrollPosition = contentContainer.scrollTop +
+            (anchorRect.top - containerRect.top) - 20; // 20px offset for better visibility
 
         // Scroll to the chapter position with smooth animation
         contentContainer.scrollTo({
-            top: scrollPosition,
+            top: Math.max(0, scrollPosition),
             behavior: 'smooth'
         });
 
         // Update current page and chapter tracking
-        currentChapter = chapter;
+        currentChapter = {
+            id: chapter.id,
+            title: chapter.title,
+            pageNumber: chapter.pageNumber
+        };
         highlightCurrentChapter();
     }
 }
@@ -784,11 +782,52 @@ function highlightCurrentChapter() {
         item.classList.remove('active', 'current');
     });
 
+    if (!currentChapter) return;
+
+    // Find current chapter index
+    const currentIndex = chapters.findIndex(ch => ch.title === currentChapter.title);
+    if (currentIndex === -1) return;
+
     // Find and highlight current chapter
-    const currentChapterElement = document.querySelector(`.chapter-item[data-page="${0}"]`);
+    const currentChapterElement = document.querySelector(
+        `.chapter-item[data-index="${currentIndex}"]`
+    );
     if (currentChapterElement) {
         currentChapterElement.classList.add('current');
         currentChapterElement.scrollIntoView({behavior: 'smooth', block: 'center'});
+    }
+}
+
+function updateCurrentChapterFromScroll() {
+    const contentContainer = document.querySelector('.content-container');
+    if (!contentContainer || !chapters || chapters.length === 0) return;
+
+    const containerRect = contentContainer.getBoundingClientRect();
+    const scrollOffset = 150; // Offset from top to trigger chapter change
+
+    // Find which chapter anchor is currently in view
+    let newCurrentIndex = 0;
+    for (let i = chapters.length - 1; i >= 0; i--) {
+        const anchorId = chapters[i].anchorId || `chapter-${i + 1}`;
+        const anchorElement = document.getElementById(anchorId);
+        if (anchorElement) {
+            const anchorRect = anchorElement.getBoundingClientRect();
+            // Check if anchor is above the trigger line
+            if (anchorRect.top <= containerRect.top + scrollOffset) {
+                newCurrentIndex = i;
+                break;
+            }
+        }
+    }
+
+    // Update current chapter if changed
+    if (!currentChapter || chapters[newCurrentIndex].title !== currentChapter.title) {
+        currentChapter = {
+            id: chapters[newCurrentIndex].id,
+            title: chapters[newCurrentIndex].title,
+            pageNumber: chapters[newCurrentIndex].pageNumber
+        };
+        highlightCurrentChapter();
     }
 }
 
@@ -840,36 +879,19 @@ function getChapterScrollPosition(chapterIndex) {
     if (!chapters || chapterIndex >= chapters.length) return 0;
 
     const chapter = chapters[chapterIndex];
-    const textContent = document.getElementById('textContent');
     const contentContainer = document.querySelector('.content-container');
 
-    if (!textContent || !contentContainer) return 0;
+    if (!contentContainer) return 0;
 
-    const chapterTitle = chapter.title;
-    const textContentStr = textContent.textContent;
+    // Use anchor to get scroll position
+    const anchorId = chapter.anchorId || `chapter-${chapterIndex + 1}`;
+    const anchorElement = document.getElementById(anchorId);
 
-    const titleIndex = findChapterTitlePosition(textContentStr, chapterTitle);
-
-    if (titleIndex !== -1) {
-        const tempDiv = document.createElement('div');
-        tempDiv.style.cssText = `
-            position: absolute;
-            visibility: hidden;
-            height: auto;
-            width: ${textContent.offsetWidth}px;
-            font-size: ${getComputedStyle(textContent).fontSize};
-            font-family: ${getComputedStyle(textContent).fontFamily};
-            line-height: ${getComputedStyle(textContent).lineHeight};
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        `;
-        tempDiv.textContent = textContentStr.substring(0, titleIndex);
-        document.body.appendChild(tempDiv);
-
-        const scrollPosition = tempDiv.offsetHeight;
-        document.body.removeChild(tempDiv);
-
-        return scrollPosition;
+    if (anchorElement) {
+        const containerRect = contentContainer.getBoundingClientRect();
+        const anchorRect = anchorElement.getBoundingClientRect();
+        return contentContainer.scrollTop +
+            (anchorRect.top - containerRect.top) - 20;
     }
 
     return 0;
