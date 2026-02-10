@@ -18,6 +18,8 @@
     <link rel="stylesheet" href="css/colorscheme/gruvbox.css">
     <link rel="stylesheet" href="css/colorscheme/onedark.css">
     <link rel="stylesheet" href="css/colorscheme/darkgreen.css">
+    <link rel="stylesheet" href="css/colorscheme/maize-yello.css">
+    <link rel="stylesheet" href="css/colorscheme/griege-dark.css">
 </head>
 <body class="theme-default">
     <!-- Navigation Header -->
@@ -27,7 +29,7 @@
                 <i class="fas fa-home"></i> Home
             </a>
             <div class="text-center flex-grow-1">
-                <h4 class="mb-0 text-white" id="storyTitleDisplay">
+                <h4 class="mb-0 text-header" id="storyTitleDisplay">
                     <span>Loading document...</span>
                 </h4>
             </div>
@@ -42,6 +44,10 @@
                     <li><a class="dropdown-item theme-option" href="#" data-theme="dark"><i class="fas fa-circle" style="color: #f0f0f0;"></i> Deep Dark</a></li>
                     <li><a class="dropdown-item theme-option" href="#" data-theme="solarized"><i class="fas fa-circle" style="color: #839496;"></i> Solarized</a></li>
                     <li><a class="dropdown-item theme-option" href="#" data-theme="darkgreen"><i class="fas fa-circle" style="color: #c0d6c7;"></i> Dark Green</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><h6 class="dropdown-header">Eye Care</h6></li>
+                    <li><a class="dropdown-item theme-option" href="#" data-theme="maize-yello"><i class="fas fa-circle" style="color: #3a3a3a; background: #f8f4e9; border-radius: 50%;"></i> MaiZe Yello</a></li>
+                    <li><a class="dropdown-item theme-option" href="#" data-theme="griege-dark"><i class="fas fa-circle" style="color: #e6e1d9; background: #1a1a1d; border-radius: 50%;"></i> Griege Dark</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li><h6 class="dropdown-header">Developer Favorites</h6></li>
                     <li><a class="dropdown-item theme-option" href="#" data-theme="dracula"><i class="fas fa-circle" style="color: #f8f8f2;"></i> Dracula</a></li>
@@ -60,8 +66,7 @@
     <!-- Chapters Sidebar -->
     <div class="chapters-sidebar auto-hide" id="chaptersSidebar">
         <div class="chapters-sidebar-header">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="mb-0 text-white">Chapters</h6>
+            <div class="d-flex justify-content-end align-items-center mb-3">
                 <button class="btn btn-sm btn-outline-light" id="togglePinBtn" title="Pin/Unpin sidebar">
                     <i class="fas fa-thumbtack" id="pinIcon"></i>
                 </button>

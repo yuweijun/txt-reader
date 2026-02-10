@@ -27,7 +27,9 @@ const themes = {
     nord: 'theme-nord',
     gruvbox: 'theme-gruvbox',
     onedark: 'theme-onedark',
-    darkgreen: 'theme-darkgreen'
+    darkgreen: 'theme-darkgreen',
+    'maize-yello': 'theme-maize-yello',
+    'griege-dark': 'theme-griege-dark'
 };
 
 function applyTheme(theme) {
@@ -51,9 +53,11 @@ function applyTheme(theme) {
         nord: 'Nord',
         gruvbox: 'Gruvbox',
         onedark: 'One Dark',
-        darkgreen: 'Dark Green'
+        darkgreen: 'Dark Green',
+        'maize-yello': 'MaiZe Yello',
+        'griege-dark': 'Griege Dark'
     };
-    document.getElementById('themeDropdown').innerHTML = `<i class="fas fa-palette"></i> ${themeNames[theme]}`;
+    document.getElementById('themeDropdown').innerHTML = `<i class="fas fa-palette"></i> ${themeNames[theme] || theme}`;
 
     // Save to localStorage
     localStorage.setItem('preferredViewerTheme', theme);
