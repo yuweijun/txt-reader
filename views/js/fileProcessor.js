@@ -328,7 +328,12 @@ class LocalFileProcessor {
                     htmlContent += '<div class="chapter-content">\n';
                     inChapterContent = true;
                 }
-                htmlContent += `<div>${this.escapeHtml(line)}</div>\n`;
+                // Only wrap non-empty lines in div
+                if (line.trim() !== '') {
+                    htmlContent += `<div>${this.escapeHtml(line)}</div>\n`;
+                } else {
+                    htmlContent += '\n';
+                }
             }
         }
 
