@@ -1,0 +1,9 @@
+/* Monokai Pro Theme */
+.theme-monokai {
+  --bg-primary: #2d2a2e;
+  --bg-secondary: rgba(45, 42, 46, 0.95);
+  --text-primary: #fcfcfa;
+  --text-secondary: #fcfcfa;
+  --heading-color: #fd971f;
+  --border-color: rgba(252, 252, 250, 0.1);
+}

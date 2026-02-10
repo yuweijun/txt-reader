@@ -1,0 +1,9 @@
+/* One Dark Theme */
+.theme-onedark {
+  --bg-primary: #282c34;
+  --bg-secondary: rgba(40, 44, 52, 0.95);
+  --text-primary: #abb2bf;
+  --text-secondary: #abb2bf;
+  --heading-color: #61afef;
+  --border-color: rgba(171, 178, 191, 0.1);
+}

@@ -1,0 +1,9 @@
+/* Default Dark Theme */
+.theme-default {
+  --bg-primary: #1a1a1a;
+  --bg-secondary: rgba(26, 26, 26, 0.95);
+  --text-primary: #e0e0e0;
+  --text-secondary: #e0e0e0;
+  --heading-color: #4fc3f7;
+  --border-color: rgba(224, 224, 224, 0.1);
+}
