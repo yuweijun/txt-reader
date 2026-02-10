@@ -74,17 +74,16 @@ class LocalFileProcessor {
                 const chunkLines = lines.slice(i, i + this.linesPerFile);
                 const chunkContent = chunkLines.join('\n');
                 
-                // Generate chunk file name with zero-padded index (00000 prefix)
+                // Generate chunk file name with zero-padded index (3 digits)
                 const chunkIndex = Math.floor(i / this.linesPerFile) + 1;
-                const paddedIndex = '00000' + chunkIndex.toString();
+                const paddedIndex = chunkIndex.toString().padStart(3, '0');
                 const chunkFileName = `${baseFileName}-${paddedIndex}.txt`;
                 
                 // Generate story ID for this chunk
                 const storyId = this.generateStoryId();
                 
-                // Extract title from first line of chunk (max 100 characters)
-                const firstLine = chunkLines[0] || '';
-                const storyTitle = firstLine.substring(0, 100).trim() || `Part ${chunkIndex}`;
+                // Use chunk file name as title (e.g., "filename-001")
+                const chunkTitle = `${baseFileName}-${paddedIndex}`;
                 
                 // Process content with chapter formatting
                 const processingResult = this.processContentWithChapters(chunkContent);
@@ -100,7 +99,7 @@ class LocalFileProcessor {
                     processedContent: processingResult.htmlContent,
                     chapters: processingResult.chapters,
                     chapterTitles: processingResult.chapterTitles,
-                    extractedTitle: storyTitle,
+                    extractedTitle: chunkTitle,
                     isSplitFile: true,
                     splitParentFile: file.name,
                     splitIndex: chunkIndex,
