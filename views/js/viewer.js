@@ -667,6 +667,11 @@ function scrollToChapter(chapterIndex) {
 
     if (!contentContainer) return;
 
+    // Stop current speech if playing
+    if (isSpeaking) {
+        stopSpeech();
+    }
+
     // Use anchor to navigate to chapter
     const anchorId = chapter.anchorId || `chapter-${chapterIndex + 1}`;
     const anchorElement = document.getElementById(anchorId);
@@ -947,7 +952,7 @@ let isPaused = false;
 let speechTextQueue = [];
 let currentSpeechIndex = 0;
 let chineseVoice = null;
-let speechRate = 1.0;
+let speechRate = 1.5;
 const MIN_SPEECH_RATE = 0.5;
 const MAX_SPEECH_RATE = 2.0;
 const SPEECH_RATE_STEP = 0.1;
