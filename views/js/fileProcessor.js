@@ -14,7 +14,7 @@ class LocalFileProcessor {
      */
     static get CHAPTER_PATTERNS() {
         return [
-            /^第?\s*([一二三四五六七八九十百千万\d]+)\s*[章节卷部篇回]\s+/, // Chinese
+            /^第?\s*([一二三四五六七八九十百千万\d]+)\s*[章节卷部篇回]\s*/, // Chinese
             /^Chapter\s+(\d+)/i, // English chapters
             /^Section\s+(\d+)/i, // Sections
             /^[IVXLCDM]+\.\s/, // Roman numerals
@@ -73,7 +73,7 @@ class LocalFileProcessor {
      */
     static extractChapterNumber(title) {
         // Try to match Chinese number pattern: 第*章/回/节
-        const chineseMatch = title.match(/第\s*([一二三四五六七八九十百千万零]+)\s*[章节卷部篇回]\s+/);
+        const chineseMatch = title.match(/第\s*([一二三四五六七八九十百千万零]+)\s*[章节卷部篇回]\s*/);
         if (chineseMatch) {
             return LocalFileProcessor.chineseToArabic(chineseMatch[1]);
         }
@@ -330,9 +330,7 @@ class LocalFileProcessor {
                 }
                 // Only wrap non-empty lines in div with chapter-content-row class
                 if (line.trim() !== '') {
-                    htmlContent += `<div class="chapter-content-row">${this.escapeHtml(line)}</div>\n`;
-                } else {
-                    htmlContent += '\n';
+                    htmlContent += `<div class="chapter-content-row">${this.escapeHtml(line)}</div>`;
                 }
             }
         }

@@ -230,7 +230,6 @@ body {
 .chapter-content {
   margin: 0.5em 0 1em 0;
   line-height: 1.2;
-  white-space: pre-wrap;
 }
 
 .chapter-content p {
