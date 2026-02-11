@@ -28,7 +28,8 @@ const themes = {
     onedark: 'theme-onedark',
     darkgreen: 'theme-darkgreen',
     'maize-yello': 'theme-maize-yello',
-    'griege-dark': 'theme-griege-dark'
+    'griege-dark': 'theme-griege-dark',
+    rouge: 'theme-rouge'
 };
 
 function applyTheme(theme) {
