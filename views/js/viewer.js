@@ -30,7 +30,8 @@ const themes = {
     'maize-yello': 'theme-maize-yello',
     'griege-dark': 'theme-griege-dark',
     rouge: 'theme-rouge',
-    onyx: 'theme-onyx'
+    onyx: 'theme-onyx',
+    almond: 'theme-almond'
 };
 
 function applyTheme(theme) {
