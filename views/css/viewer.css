@@ -50,6 +50,7 @@
   padding: 10px 15px 15px 15px;
   scrollbar-width: thin;
   scrollbar-color: var(--border-color) transparent;
+  background-color: var(--sidebar-bg);
 }
 
 /* WebKit scrollbar styling for chapters sidebar content */
@@ -102,6 +103,7 @@
   scrollbar-width: thin;
   scrollbar-color: var(--border-color) transparent;
   -webkit-overflow-scrolling: touch;
+  background-color: var(--sidebar-bg);
 }
 
 .chapter-list::-webkit-scrollbar {
@@ -363,11 +365,13 @@ body {
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
     touch-action: pan-y; /* Allow vertical scrolling only */
+    background-color: var(--sidebar-bg);
   }
 
   .chapter-list {
     max-height: none;
     overflow-y: visible;
     touch-action: pan-y; /* Allow vertical scrolling */
+    background-color: var(--sidebar-bg);
   }
 }
