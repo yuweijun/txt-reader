@@ -31,7 +31,8 @@ const themes = {
     'griege-dark': 'theme-griege-dark',
     rouge: 'theme-rouge',
     onyx: 'theme-onyx',
-    almond: 'theme-almond'
+    almond: 'theme-almond',
+    autumn: 'theme-autumn'
 };
 
 function applyTheme(theme) {
