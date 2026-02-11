@@ -29,7 +29,8 @@ const themes = {
     darkgreen: 'theme-darkgreen',
     'maize-yello': 'theme-maize-yello',
     'griege-dark': 'theme-griege-dark',
-    rouge: 'theme-rouge'
+    rouge: 'theme-rouge',
+    onyx: 'theme-onyx'
 };
 
 function applyTheme(theme) {
