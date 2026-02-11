@@ -32,7 +32,11 @@ const themes = {
     rouge: 'theme-rouge',
     onyx: 'theme-onyx',
     almond: 'theme-almond',
-    autumn: 'theme-autumn'
+    autumn: 'theme-autumn',
+    aurora: 'theme-aurora',
+    meadow: 'theme-meadow',
+    seasky: 'theme-seasky',
+    lavender: 'theme-lavender'
 };
 
 function applyTheme(theme) {
