@@ -36,7 +36,8 @@ const themes = {
     aurora: 'theme-aurora',
     meadow: 'theme-meadow',
     seasky: 'theme-seasky',
-    lavender: 'theme-lavender'
+    lavender: 'theme-lavender',
+    bamboo: 'theme-bamboo'
 };
 
 function applyTheme(theme) {
