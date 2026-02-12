@@ -58,10 +58,10 @@ cd txt-reader
 ./start.sh
 
 # Or run directly with Python's built-in HTTP server
-cd views && python -m http.server 8000
+cd reader && python -m http.server 8000
 
 # Run with custom port
-cd views && python -m http.server 8001
+cd reader && python -m http.server 8001
 ```
 
 ### Access the Application
@@ -101,7 +101,7 @@ The application uses client-side routing with hash URLs for viewer pages (e.g., 
 txt-reader/
 ├── start.sh                          # Convenience script to start the server
 ├── requirements.txt                  # Python dependencies (minimal - mostly built-ins)
-├── views/
+├── reader/
 │   ├── index.html                    # Main document management page
 │   ├── viewer.html                   # Advanced text reading interface
 │   ├── viewController.js             # Legacy route handler (no longer used)

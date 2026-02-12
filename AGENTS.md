@@ -9,14 +9,14 @@ Pure frontend text reader web application. All processing occurs in the browser 
 ## Build and Run Commands
 
 ```bash
-# Start development server (serves from views/ directory on port 8000)
+# Start development server (serves from reader/ directory on port 8000)
 ./start.sh
 
 # Alternative: run directly
-cd views && python -m http.server 8000
+cd reader && python -m http.server 8000
 
 # Custom port
-cd views && python -m http.server 8001
+cd reader && python -m http.server 8001
 
 # Check if port is in use
 lsof -i :8000
@@ -50,10 +50,10 @@ Access the app at `http://localhost:8000`. No build step required - static file 
 
 ### Core JavaScript Classes
 
-- `TextReaderDB` (`views/js/database.js`) - IndexedDB wrapper with CRUD for books/stories/histories
-- `LocalFileProcessor` (`views/js/fileProcessor.js`) - File reading, chapter detection, content processing
-- `init.js` (`views/js/init.js`) - App initialization, event binding, pagination for index page
-- `viewer.js` (`views/js/viewer.js`) - Reader UI, theme switching, keyboard navigation
+- `TextReaderDB` (`reader/js/database.js`) - IndexedDB wrapper with CRUD for books/stories/histories
+- `LocalFileProcessor` (`reader/js/fileProcessor.js`) - File reading, chapter detection, content processing
+- `init.js` (`reader/js/init.js`) - App initialization, event binding, pagination for index page
+- `viewer.js` (`reader/js/viewer.js`) - Reader UI, theme switching, keyboard navigation
 
 ### Chapter Detection
 
@@ -72,7 +72,7 @@ Files with >50 chapters are auto-split into multiple stories under one book.
 
 ### Themes
 
-14 color schemes in `views/css/colorscheme/`. Applied via `theme-{name}` class on body. Saved to `localStorage.preferredViewerTheme`.
+14 color schemes in `reader/css/colorscheme/`. Applied via `theme-{name}` class on body. Saved to `localStorage.preferredViewerTheme`.
 
 ## Git Commit Guidelines
 

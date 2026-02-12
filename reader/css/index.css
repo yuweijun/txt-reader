@@ -86,16 +86,6 @@ body {
 .book-stories {
   margin-top: 8px;
 }
-  background: var(--bg-secondary, rgba(26, 26, 26, 0.95));
-  color: var(--text-primary, #e0e0e0);
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 8px;
-  border: 1px solid var(--border-color, rgba(224, 224, 224, 0.1));
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
 
 .story-item:active {
   background: var(--current-chapter-bg, rgba(79, 195, 247, 0.1));
@@ -113,17 +103,13 @@ body {
   align-items: center;
 }
 
-.story-item:active {
-  background: var(--current-chapter-bg, rgba(79, 195, 247, 0.1));
-}
-
 /* Story item link styling - 3% lighter than book name color */
 .story-item a {
-  color: #5bcbff; /* 3% lighter than #4fc3f7 */
+  color: #5bcbff;
 }
 
 .story-item a:hover {
-  color: var(--heading-color, #4fc3f7); /* Return to original color on hover */
+  color: var(--heading-color, #4fc3f7);
 }
 
 /* Button styling - small buttons without borders */
@@ -146,45 +132,6 @@ body {
 
 .btn-link.text-primary:hover {
   color: var(--heading-color, #4fc3f7) !important;
-}
-
-.story-info {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-}
-
-.story-title {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--heading-color, #4fc3f7);
-  text-decoration: none;
-  display: block;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-bottom: 2px;
-}
-
-.story-title:hover {
-  color: var(--current-chapter-color, #4fc3f7);
-}
-
-.story-meta {
-  font-size: 11px;
-  color: var(--text-secondary, #e0e0e0);
-  opacity: 0.6;
-}
-
-.story-actions {
-  display: flex;
-  gap: 6px;
-  flex-shrink: 0;
-}
-
-.story-actions .btn {
-  padding: 4px 8px;
-  font-size: 12px;
 }
 
 /* Section header */
@@ -316,10 +263,6 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-  }
-
-  .story-title {
-    font-size: 13px;
   }
 
   /* Mobile story item link styling */

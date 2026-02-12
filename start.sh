@@ -6,5 +6,5 @@ echo "Access the application at: http://localhost:8000"
 echo "Press Ctrl+C to stop the server"
 echo ""
 
-# Change to views directory and start Python HTTP server
-cd views && python -m http.server 8000
+# Change to reader directory and start Python HTTP server
+cd reader && python -m http.server 8000

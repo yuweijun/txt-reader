@@ -3,8 +3,6 @@
   transition: all 0.3s ease;
 }
 
-
-
 .hidden-left {
   transform: translateX(-100%);
   opacity: 0;
@@ -182,10 +180,6 @@
   height: 0;
 }
 
-.toggle-chapters {
-  display: none;
-}
-
 /* Base styles */
 body {
   font-family: sans-serif;
@@ -194,10 +188,6 @@ body {
   padding: 0;
   transition: all 0.3s ease;
 }
-
-/* ============================================
-   THEME SYSTEM - CSS Custom Properties
-   ============================================ */
 
 /* Theme Application - Base styles */
 [class^="theme-"] {
@@ -289,13 +279,6 @@ body {
   line-height: 1.1;
 }
 
-/* Loading indicator */
-.loading {
-  text-align: center;
-  padding: 50px;
-  font-size: 20px;
-}
-
 /* Speech highlight - current speaking line */
 .speech-highlight {
   background-color: var(--current-chapter-bg);
@@ -334,7 +317,7 @@ body {
     z-index: 1000;
     transform: translateY(100%);
     transition: transform 0.3s ease;
-    touch-action: none; /* Prevent default touch behavior on sidebar container */
+    touch-action: none;
   }
 
   .chapters-sidebar.visible {
@@ -379,14 +362,14 @@ body {
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
-    touch-action: pan-y; /* Allow vertical scrolling only */
+    touch-action: pan-y;
     background-color: var(--sidebar-bg);
   }
 
   .chapter-list {
     max-height: none;
     overflow-y: visible;
-    touch-action: pan-y; /* Allow vertical scrolling */
+    touch-action: pan-y;
     background-color: var(--sidebar-bg);
   }
 }
