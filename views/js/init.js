@@ -235,6 +235,14 @@ async function processSelectedFile() {
         // Read file content with automatic encoding detection to check chapter count
         const fileContent = await appState.processor.readFileAsText(file);
 
+        // Validate UTF-8 encoding
+        if (!LocalFileProcessor.isUtf8Encoded(fileContent)) {
+            hideLoading();
+            showError('上传的文本文件编码必须为UTF-8格式。请将文件转换为UTF-8编码后重新上传。');
+            if (processFileBtn) processFileBtn.disabled = false;
+            return;
+        }
+
         // Detect chapters to decide if splitting is needed
         const chapterBoundaries = appState.processor.detectChapters(fileContent);
         let result;
