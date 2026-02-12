@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Text Reader</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📖</text></svg>">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css">
+  <!-- Color Schemes (consolidated) -->
+  <link rel="stylesheet" href="css/themes.css">
+  <!-- iOS-style modals -->
+  <link rel="stylesheet" href="css/modal.css">
+  <!-- App styles (merged) -->
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body class="theme-default">
+  <!-- ==================== LIBRARY VIEW ==================== -->
+  <div data-view="library" class="view-container library-view">
+    <div class="container">
+      <!-- Upload Section -->
+      <div class="main-card">
+        <div class="upload-section">
+          <textarea id="textContent" class="form-control" rows="3" 
+                    placeholder="Paste text content here..."></textarea>
+          <div class="upload-row">
+            <input type="file" id="fileInput" accept=".txt" class="form-control">
+          </div>
+          <div class="upload-row">
+            <button id="processTextBtn" class="btn btn-success btn-sm" disabled>
+              <i class="fas fa-file-import"></i> Process Text
+            </button>
+            <button id="processFileBtn" class="btn btn-primary btn-sm" disabled>
+              <i class="fas fa-upload"></i> Upload File
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Normal Version Link -->
+      <div class="main-card">
+        <a href="index.html" class="btn btn-outline-primary w-100">
+          <i class="fas fa-arrow-left"></i> Back to Normal Version v1.0
+        </a>
+      </div>
+
+      <!-- Books List Section -->
+      <div class="main-card">
+        <div class="section-header">
+          <h6><i class="fas fa-book"></i> Books</h6>
+          <div class="btn-group">
+            <button id="refreshBtn" class="btn btn-outline-secondary">
+              <i class="fas fa-sync"></i>
+            </button>
+            <button id="clearAllBtn" class="btn btn-outline-danger">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Loading State -->
+        <div id="loadingState" class="loading-state">
+          <i class="fas fa-spinner fa-spin"></i>
+          <p>Loading...</p>
+        </div>
+        
+        <!-- Empty State -->
+        <div id="emptyState" class="empty-state" style="display: none;">
+          <i class="fas fa-book-open"></i>
+          <p>No documents yet</p>
+        </div>
+        
+        <!-- Stories List -->
+        <div id="storiesList" style="display: none;"></div>
+        
+        <!-- Pagination Controls -->
+        <div id="paginationControls" class="pagination-controls" style="display: none;">
+          <button id="prevPageBtn" class="btn btn-outline-primary btn-sm" disabled>
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <span id="pageInfo" class="page-info">1 / 1</span>
+          <button id="nextPageBtn" class="btn btn-outline-primary btn-sm" disabled>
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading Overlay (Library) -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+      <div class="loading-spinner">
+        <i class="fas fa-spinner fa-spin fa-2x"></i>
+        <p id="loadingText">Loading...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== VIEWER VIEW ==================== -->
+  <div data-view="view" class="view-container viewer-view" style="display: none;">
+    <div class="content-container">
+      <div class="text-content" id="viewerTextContent"></div>
+    </div>
+
+    <!-- Chapters Sidebar -->
+    <div class="chapters-sidebar auto-hide" id="chaptersSidebar">
+      <div class="chapters-sidebar-header">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="d-flex">
+            <a href="#/" class="btn btn-sm btn-outline-light me-2" title="Home">
+              <i class="fas fa-home"></i>
+            </a>
+            <div class="dropdown">
+              <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" id="themeDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Theme">
+                <i class="fas fa-palette"></i>
+              </button>
+              <ul class="dropdown-menu" aria-labelledby="themeDropdown">
+                <li><a class="dropdown-item theme-option" href="#" data-theme="default"><span class="theme-preview" style="color: #e0e0e0; background: #1a1a1a;">Aa</span> Default Dark</a></li>
+                <li><a class="dropdown-item theme-option" href="#" data-theme="monokai"><span class="theme-preview" style="color: #fcfcfa; background: #2d2a2e;">Aa</span> Monokai Pro</a></li>
+                <li><a class="dropdown-item theme-option" href="#" data-theme="solarized"><span class="theme-preview" style="color: #839496; background: #002b36;">Aa</span> Solarized</a></li>
+                <li><a class="dropdown-item theme-option" href="#" data-theme="darkgreen"><span class="theme-preview" style="color: #c0d6c7; background: #0f1e13;">Aa</span> Dark Green</a></li>
+                <li><a class="dropdown-item theme-option" href="#" data-theme="dracula"><span class="theme-preview" style="color: #f8f8f2; background: #282a36;">Aa</span> Dracula</a></li>
+                <li><a class="dropdown-item theme-option" href="#" data-theme="nord"><span class="theme-preview" style="color: #eceff4; background: #2e3440;">Aa</span> Nord</a></li>
+                <li><a class="dropdown-item theme-option" href="#" data-theme="griege-dark"><span class="theme-preview" style="color: #e6e1d9; background: #1a1a1d;">Aa</span> Griege Dark</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item theme-option" href="#" data-theme="maize-yello"><span class="theme-preview" style="color: #3a3a3a; background: #f8f4e9;">Aa</span> MaiZe Yello</a></li>
+                <li><a class="dropdown-item theme-option" href="#" data-theme="rouge"><span class="theme-preview" style="color: #414441; background: #FDE6E0;">Aa</span> Rouge</a></li>
+                <li><a class="dropdown-item theme-option" href="#" data-theme="almond"><span class="theme-preview" style="color: #414441; background: #FAF9DE;">Aa</span> Almond</a></li>
+                <li><a class="dropdown-item theme-option" href="#" data-theme="autumn"><span class="theme-preview" style="color: #414441; background: #FFF2E2;">Aa</span> Autumn</a></li>
+                <li><a class="dropdown-item theme-option" href="#" data-theme="meadow"><span class="theme-preview" style="color: #414441; background: #E3EDCD;">Aa</span> Meadow</a></li>
+                <li><a class="dropdown-item theme-option" href="#" data-theme="lavender"><span class="theme-preview" style="color: #414441; background: #E9EBFE;">Aa</span> Lavender</a></li>
+                <li><a class="dropdown-item theme-option" href="#" data-theme="bamboo"><span class="theme-preview" style="color: #414c41; background: #b5eecd;">Aa</span> Bamboo</a></li>
+              </ul>
+            </div>
+          </div>
+          <div class="d-flex">
+            <button class="btn btn-sm btn-outline-light me-2" id="speechBtn" title="Play/Pause speech">
+              <i class="fas fa-play" id="speechIcon"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-light me-2" id="speechSpeedDownBtn" title="Decrease speed">
+              <i class="fas fa-minus"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-light me-2" id="speechSpeedUpBtn" title="Increase speed">
+              <i class="fas fa-plus"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-light" id="togglePinBtn" title="Pin/Unpin sidebar">
+              <i class="fas fa-thumbtack" id="pinIcon"></i>
+            </button>
+          </div>
+        </div>
+        <input type="text" class="chapter-search" id="chapterSearch" placeholder="Search chapters...">
+      </div>
+      <div class="chapters-sidebar-content">
+        <ul class="chapter-list" id="chapterList"></ul>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/modal.js"></script>
+  <script src="js/database.js"></script>
+  <script src="js/fileProcessor.js"></script>
+  <script src="js/router.js"></script>
+  <script src="js/libraryController.js"></script>
+  <script src="js/viewerController.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

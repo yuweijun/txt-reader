@@ -1,0 +1,784 @@
+/**
+ * Merged CSS for Text Reader SPA
+ * Combines index.css and viewer.css with namespacing
+ */
+
+/* ==================== SHARED STYLES ==================== */
+
+* {
+  box-sizing: border-box;
+}
+
+/* iOS viewport height fix */
+:root {
+  --vh: 1vh;
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+  background: var(--bg-primary, #1a1a1a);
+  color: var(--text-primary, #e0e0e0);
+  transition: all 0.3s ease;
+  /* Prevent iOS bounce scroll */
+  overscroll-behavior: none;
+}
+
+/* Theme Application - Base styles */
+[class^="theme-"] {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* View containers */
+.view-container {
+  display: none;
+}
+
+.view-container.active {
+  display: block;
+}
+
+/* Form controls - shared */
+.form-control {
+  background: var(--bg-primary, #1a1a1a);
+  color: var(--text-primary, #e0e0e0);
+  border: 1px solid var(--border-color, rgba(224, 224, 224, 0.1));
+}
+
+.form-control:focus {
+  background: var(--bg-primary, #1a1a1a);
+  color: var(--text-primary, #e0e0e0);
+  border-color: var(--heading-color, #4fc3f7);
+  box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.2);
+}
+
+.form-control::placeholder {
+  color: var(--text-secondary, #e0e0e0);
+  opacity: 0.4;
+}
+
+/* Modal - shared */
+.modal-content {
+  background: var(--sidebar-bg, rgba(10, 10, 10, 0.98));
+  color: var(--text-primary, #e0e0e0);
+  border: 1px solid var(--border-color, rgba(224, 224, 224, 0.1));
+}
+
+.modal-header,
+.modal-footer {
+  border-color: var(--border-color, rgba(224, 224, 224, 0.1));
+}
+
+.btn-close {
+  filter: invert(1);
+}
+
+/* Minimum touch target sizes (44x44px Apple HIG) */
+.btn {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.btn-sm {
+  min-height: 36px;
+  min-width: 36px;
+}
+
+/* ==================== LIBRARY VIEW STYLES ==================== */
+
+.library-view {
+  min-height: calc(var(--vh, 1vh) * 100);
+  padding: 10px;
+  padding-top: calc(10px + var(--safe-area-top));
+  padding-bottom: calc(10px + var(--safe-area-bottom));
+}
+
+.library-view .container {
+  padding: 0;
+  max-width: 100%;
+}
+
+.library-view .main-card {
+  background: var(--sidebar-bg, rgba(10, 10, 10, 0.98));
+  color: var(--text-primary, #e0e0e0);
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-color, rgba(224, 224, 224, 0.1));
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+/* Remove borders from buttons in main card */
+.library-view .main-card .btn-group .btn,
+.library-view .main-card .btn {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Compact upload section */
+.library-view .upload-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.library-view .upload-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.library-view .upload-row .form-control {
+  flex: 1;
+  font-size: 14px;
+  padding: 8px 10px;
+}
+
+.library-view .upload-row .btn {
+  white-space: nowrap;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.library-view #textContent {
+  font-size: 14px;
+  padding: 10px;
+  resize: none;
+}
+
+/* Book item styling */
+.library-view .book-item {
+  background: var(--bg-secondary, rgba(26, 26, 26, 0.95));
+  color: var(--text-primary, #e0e0e0);
+  padding: 12px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border-color, rgba(224, 224, 224, 0.1));
+}
+
+.library-view .book-header h5 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--heading-color, #4fc3f7);
+}
+
+.library-view .book-stories {
+  margin-top: 8px;
+}
+
+.library-view .story-item:active {
+  background: var(--current-chapter-bg, rgba(79, 195, 247, 0.1));
+}
+
+/* Story items */
+.library-view .story-item {
+  background: var(--bg-secondary, rgba(26, 26, 26, 0.95));
+  color: var(--text-primary, #e0e0e0);
+  padding: 12px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border-color, rgba(224, 224, 224, 0.1));
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Story item link styling - same as --heading-color but 95% opacity and smaller */
+.library-view .story-item a {
+  color: var(--heading-color);
+  opacity: 0.95;
+  font-size: 14px;
+}
+
+.library-view .story-item a:hover {
+  color: var(--heading-color, #4fc3f7);
+}
+
+/* Button styling - small buttons without borders */
+.library-view .btn-link {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 4px 8px !important;
+  font-size: 12px !important;
+  text-decoration: none !important;
+}
+
+.library-view .btn-link:hover {
+  text-decoration: underline !important;
+}
+
+.library-view .btn-link.text-danger:hover {
+  color: #ff6b6b !important;
+}
+
+.library-view .btn-link.text-primary:hover {
+  color: var(--heading-color, #4fc3f7) !important;
+}
+
+/* Section header */
+.library-view .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color, rgba(224, 224, 224, 0.1));
+}
+
+.library-view .section-header h6 {
+  margin: 0;
+  font-size: 14px;
+  color: var(--header-text-color, #e0e0e0);
+}
+
+.library-view .section-header .btn-group .btn {
+  padding: 4px 8px;
+  font-size: 11px;
+}
+
+/* Empty and loading states */
+.library-view .empty-state,
+.library-view .loading-state {
+  text-align: center;
+  padding: 30px 15px;
+  color: var(--text-secondary, #e0e0e0);
+  opacity: 0.7;
+}
+
+.library-view .empty-state i,
+.library-view .loading-state i {
+  font-size: 2rem;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.library-view .empty-state p,
+.library-view .loading-state p {
+  margin: 0;
+  font-size: 13px;
+}
+
+/* Pagination */
+.library-view .pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  padding-top: 10px;
+}
+
+.library-view .pagination-controls .btn {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.library-view .page-info {
+  font-size: 12px;
+  color: var(--text-primary, #e0e0e0);
+}
+
+/* Loading overlay */
+.library-view .loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.library-view .loading-spinner {
+  text-align: center;
+  color: var(--text-primary, #e0e0e0);
+}
+
+.library-view .loading-spinner p {
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+/* ==================== VIEWER VIEW STYLES ==================== */
+
+/* Auto-hide functionality */
+.auto-hide {
+  transition: all 0.3s ease;
+}
+
+.hidden-left {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+.pinned {
+  transform: translateX(0) translateY(0) !important;
+  opacity: 1 !important;
+}
+
+/* Chapters sidebar with fixed header */
+.chapters-sidebar {
+  position: fixed;
+  left: 20px;
+  top: 20px;
+  width: 360px;
+  max-height: calc(100vh - 40px);
+  background: var(--sidebar-bg);
+  color: var(--text-primary);
+  border-radius: 10px;
+  backdrop-filter: blur(10px);
+  z-index: 900;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.chapters-sidebar-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: 15px 15px 10px 15px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--sidebar-bg);
+}
+
+.chapters-sidebar-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 10px 15px 15px 15px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
+  background-color: var(--sidebar-bg);
+}
+
+/* WebKit scrollbar styling for chapters sidebar content */
+.chapters-sidebar-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chapters-sidebar-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chapters-sidebar-content::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+.chapters-sidebar-content::-webkit-scrollbar-thumb:hover {
+  background: var(--heading-color);
+}
+
+/* Search input styling */
+.chapter-search {
+  width: 100%;
+  padding: 8px 12px;
+  margin-bottom: 15px;
+  border-radius: 5px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.chapter-search::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+.chapter-search:focus {
+  outline: none;
+  border-color: var(--heading-color);
+  background: var(--bg-primary);
+}
+
+.chapter-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: calc(100vh - 280px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
+  -webkit-overflow-scrolling: touch;
+  background-color: var(--sidebar-bg);
+}
+
+.chapter-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chapter-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chapter-list::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+.chapter-list::-webkit-scrollbar-thumb:hover {
+  background: var(--heading-color);
+}
+
+/* Dropdown menu in sidebar - ensure it displays properly */
+.chapters-sidebar-header .dropdown-menu {
+  max-height: 300px;
+  overflow-y: auto;
+  font-size: 14px;
+}
+
+.chapters-sidebar-header .dropdown-toggle::after {
+  display: none;
+}
+
+/* Theme preview in dropdown */
+.theme-preview {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  margin-right: 8px;
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  vertical-align: middle;
+}
+
+.chapter-item {
+  /* Minimum 44px touch target (Apple HIG) */
+  min-height: 44px;
+  padding: 8px 12px;
+  margin: 2px 0;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+}
+
+.chapter-item.active {
+  background: var(--border-color);
+}
+
+.chapter-item.current {
+  background: var(--current-chapter-bg);
+  font-weight: bold;
+  border-left: 3px solid var(--current-chapter-color);
+}
+
+.chapter-item:hover {
+  background: var(--border-color);
+}
+
+/* Chapter anchor - invisible but navigable */
+.chapter-anchor {
+  display: block;
+  position: relative;
+  top: -20px;
+  visibility: hidden;
+  height: 0;
+}
+
+/* Text content styles - shared across all themes */
+.viewer-view .text-content {
+  color: var(--text-secondary);
+}
+
+/* Chapter heading - base styles */
+.chapter-heading {
+  color: var(--heading-color);
+  font-weight: bold;
+  font-size: 1.2em;
+  margin: 1.5em 0 0.5em 0;
+  padding: 0.5em 0;
+  border-bottom: 2px solid var(--heading-color);
+}
+
+/* Outline button - uses heading color */
+.btn-outline-light {
+  color: var(--heading-color);
+  border-color: var(--heading-color);
+}
+
+.btn-outline-light:hover {
+  background-color: var(--heading-color);
+  color: var(--bg-primary);
+}
+
+/* Chapter content - base styles */
+.chapter-content {
+  margin: 0.5em 0 1em 0;
+  line-height: 1.65;
+}
+
+.chapter-content p {
+  margin: 0;
+  line-height: 1.65;
+}
+
+/* Chapter content row - individual line wrapper */
+.chapter-content-row {
+  margin: 0.5em 0 1em 0;
+  padding: 0;
+  line-height: 1.65;
+}
+
+/* Content container */
+.viewer-view .content-container {
+  max-width: 1000px;
+  margin: 0 auto 0 390px;
+  padding: 20px;
+  padding-top: calc(20px + var(--safe-area-top));
+  padding-bottom: calc(20px + var(--safe-area-bottom));
+  min-height: calc(var(--vh, 1vh) * 100);
+  box-sizing: border-box;
+  overflow-y: scroll;
+  height: calc(var(--vh, 1vh) * 100);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(128, 128, 128, 0.5) transparent;
+  background-color: var(--bg-primary);
+  transition: background-color 0.3s ease;
+  /* Smooth scroll on iOS */
+  -webkit-overflow-scrolling: touch;
+}
+
+.viewer-view .content-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.viewer-view .content-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.viewer-view .content-container::-webkit-scrollbar-thumb {
+  background: rgba(128, 128, 128, 0.5);
+  border-radius: 4px;
+}
+
+.viewer-view .content-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(128, 128, 128, 0.7);
+}
+
+/* Text content base */
+.viewer-view .text-content {
+  font-size: 20px;
+  word-wrap: break-word;
+  margin-bottom: 30px;
+  line-height: 1.6;
+}
+
+/* Speech highlight - current speaking line */
+.speech-highlight {
+  background-color: var(--current-chapter-bg);
+  border-left: 3px solid var(--current-chapter-color);
+  padding-left: 5px;
+  transition: all 0.2s ease;
+}
+
+/* ==================== RESPONSIVE DESIGN ==================== */
+
+@media (max-width: 768px) {
+  /* Lock body scroll when sidebar is visible */
+  body.sidebar-open {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Library view mobile */
+  .library-view {
+    padding: 8px;
+    padding-left: calc(8px + var(--safe-area-left));
+    padding-right: calc(8px + var(--safe-area-right));
+  }
+
+  .library-view .main-card {
+    padding: 10px;
+    border-radius: 10px;
+  }
+
+  .library-view .main-card .btn-group .btn,
+  .library-view .main-card .btn {
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .library-view .book-item {
+    padding: 10px;
+    border-bottom: 1px solid var(--border-color, rgba(224, 224, 224, 0.1));
+  }
+
+  .library-view .book-header h5 {
+    font-size: 15px;
+  }
+
+  .library-view .story-item {
+    min-height: 44px;
+    padding: 12px 10px;
+    border-bottom: 1px solid var(--border-color, rgba(224, 224, 224, 0.1));
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .library-view .btn-link {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 10px !important;
+    font-size: 12px !important;
+  }
+
+  .library-view .upload-row {
+    flex-wrap: wrap;
+  }
+
+  .library-view .upload-row .form-control {
+    width: 100%;
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  .library-view .upload-row .btn {
+    flex: 1;
+    min-height: 44px;
+  }
+
+  .library-view #textContent {
+    font-size: 16px;
+  }
+
+  /* Viewer view mobile */
+  .viewer-view .content-container {
+    padding: 15px;
+    padding-left: calc(15px + var(--safe-area-left));
+    padding-right: calc(15px + var(--safe-area-right));
+    padding-bottom: calc(15px + var(--safe-area-bottom));
+    margin-left: 0;
+    max-width: 100%;
+    height: calc(var(--vh, 1vh) * 100);
+    min-height: calc(var(--vh, 1vh) * 100);
+  }
+
+  .chapters-sidebar {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    top: auto;
+    width: 100%;
+    height: 50vh;
+    max-height: 50vh;
+    min-height: 50vh;
+    margin: 0;
+    border-radius: 15px 15px 0 0;
+    z-index: 1000;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+    touch-action: pan-y;
+    padding-bottom: var(--safe-area-bottom);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .chapters-sidebar.visible {
+    transform: translateY(0);
+  }
+
+  .chapters-sidebar.hidden-bottom {
+    transform: translateY(100%);
+  }
+
+  .chapters-sidebar.visible::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: -1;
+  }
+
+  .chapter-search {
+    width: calc(100% - 24px);
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  /* Handle bar for mobile sidebar */
+  .chapters-sidebar-header::before {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 4px;
+    background: var(--border-color);
+    border-radius: 2px;
+    margin: 0 auto 10px auto;
+  }
+
+  .chapters-sidebar-header {
+    position: sticky;
+    top: 0;
+    flex-shrink: 0;
+    z-index: 20;
+    background: var(--sidebar-bg);
+  }
+
+  .chapters-sidebar-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    padding: 10px 15px 15px 15px;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+    background-color: var(--sidebar-bg);
+  }
+
+  .chapter-list {
+    max-height: none;
+    overflow-y: visible;
+    touch-action: pan-y;
+    background-color: var(--sidebar-bg);
+  }
+
+  .btn-sm {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 10px 12px;
+  }
+}
+
+@media (max-width: 576px) {
+  .library-view {
+    padding: 8px;
+    padding-left: calc(8px + var(--safe-area-left));
+    padding-right: calc(8px + var(--safe-area-right));
+  }
+
+  .library-view .main-card {
+    padding: 10px;
+    border-radius: 10px;
+  }
+}
