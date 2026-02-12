@@ -3,6 +3,19 @@
  * Handles the text viewing functionality with chapter navigation
  */
 
+// Fix iOS 100vh issue - set CSS custom property for true viewport height
+function setViewportHeight() {
+  const vh = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty('--vh', `${vh}px`);
+}
+
+// Set initial value and update on resize/orientation change
+setViewportHeight();
+window.addEventListener('resize', window.debounce(setViewportHeight, 100));
+window.addEventListener('orientationchange', () => {
+  setTimeout(setViewportHeight, 100);
+});
+
 // Auto-hide functionality variables
 let db = null;
 let localFileProcessor = null;
@@ -126,6 +139,9 @@ async function initializeViewer() {
 
   // Setup auto-hide functionality
   setupAutoHide();
+
+  // Setup swipe-to-dismiss for mobile sidebar
+  setupSwipeToDismiss();
 
   // Setup pin toggle button
   const togglePinBtn = document.getElementById('togglePinBtn');
@@ -280,11 +296,14 @@ function setupPaginationClickHandler() {
   const contentContainer = document.querySelector('.content-container');
   if (!contentContainer) return;
 
+  // Reduced bottom tap zone from 75% to 20% - less accidental taps
+  const BOTTOM_TAP_THRESHOLD = 0.80; // Bottom 20% of screen
+
   function handlePaginationClick(e) {
     const rect = contentContainer.getBoundingClientRect();
     const clickY = e.clientY - rect.top;
     const containerHeight = rect.height;
-    const bottomThreshold = containerHeight * 0.75;
+    const bottomThreshold = containerHeight * BOTTOM_TAP_THRESHOLD;
 
     if (clickY >= bottomThreshold) {
       const scrollAmount = containerHeight * 0.9;
@@ -302,7 +321,7 @@ function setupPaginationClickHandler() {
     const rect = contentContainer.getBoundingClientRect();
     const touchY = touch.clientY - rect.top;
     const containerHeight = rect.height;
-    const bottomThreshold = containerHeight * 0.75;
+    const bottomThreshold = containerHeight * BOTTOM_TAP_THRESHOLD;
 
     if (touchY >= bottomThreshold) {
       e.preventDefault();
@@ -427,6 +446,61 @@ function setupAutoHide() {
       }, 150);
     });
   }
+}
+
+// Swipe-to-dismiss gesture for mobile sidebar
+function setupSwipeToDismiss() {
+  const sidebar = document.getElementById('chaptersSidebar');
+  if (!sidebar) return;
+
+  let startY = 0;
+  let currentY = 0;
+  let isDragging = false;
+  const SWIPE_THRESHOLD = 50; // Minimum distance to trigger dismiss
+
+  sidebar.addEventListener('touchstart', function(e) {
+    if (!isMobileView() || !sidebar.classList.contains('visible')) return;
+    
+    // Only start drag from the header area (handle bar)
+    const header = sidebar.querySelector('.chapters-sidebar-header');
+    if (!header || !header.contains(e.target)) return;
+    
+    startY = e.touches[0].clientY;
+    isDragging = true;
+    sidebar.style.transition = 'none';
+  }, { passive: true });
+
+  sidebar.addEventListener('touchmove', function(e) {
+    if (!isDragging || !isMobileView()) return;
+    
+    currentY = e.touches[0].clientY;
+    const deltaY = currentY - startY;
+    
+    // Only allow dragging downward
+    if (deltaY > 0) {
+      sidebar.style.transform = `translateY(${deltaY}px)`;
+    }
+  }, { passive: true });
+
+  sidebar.addEventListener('touchend', function(e) {
+    if (!isDragging || !isMobileView()) return;
+    
+    isDragging = false;
+    sidebar.style.transition = 'transform 0.3s ease';
+    
+    const deltaY = currentY - startY;
+    
+    if (deltaY > SWIPE_THRESHOLD) {
+      // Swipe down - dismiss sidebar
+      hideSidebar();
+    } else {
+      // Reset position
+      sidebar.style.transform = '';
+    }
+    
+    startY = 0;
+    currentY = 0;
+  }, { passive: true });
 }
 
 // Store scroll position when locking body

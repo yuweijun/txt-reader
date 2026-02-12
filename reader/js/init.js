@@ -3,6 +3,19 @@
  * Handles database initialization and data synchronization
  */
 
+// Fix iOS 100vh issue - set CSS custom property for true viewport height
+function setViewportHeight() {
+  const vh = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty('--vh', `${vh}px`);
+}
+
+// Set initial value and update on resize/orientation change
+setViewportHeight();
+window.addEventListener('resize', window.debounce(setViewportHeight, 100));
+window.addEventListener('orientationchange', () => {
+  setTimeout(setViewportHeight, 100);
+});
+
 function applyTheme() {
   const savedTheme = localStorage.getItem('preferredViewerTheme') || 'default';
   if (window.themes[savedTheme]) {
@@ -246,23 +259,8 @@ async function loadBooks() {
   try {
     showLoading('Loading books...');
 
-    // Get all books from database
-    const books = await appState.db.getAllBooks();
-
-    // Sort by upload time (newest first)
-    books.sort((a, b) => new Date(b.uploadTime) - new Date(a.uploadTime));
-
-    // Load stories for each book
-    for (const book of books) {
-      book.stories = await appState.db.getStoriesByBookId(book.id);
-      // Sort stories by split index if they are split files
-      book.stories.sort((a, b) => {
-        if (a.splitIndex && b.splitIndex) {
-          return a.splitIndex - b.splitIndex;
-        }
-        return new Date(a.uploadTime) - new Date(b.uploadTime);
-      });
-    }
+    // Get all books with stories in a single batch query (fixes N+1 problem)
+    const books = await appState.db.getAllBooksWithStories();
 
     appState.allBooks = books;
     appState.totalPages = Math.ceil(books.length / appState.itemsPerPage);
@@ -394,24 +392,29 @@ window.toggleBook = function(bookId) {
 };
 
 function attachDeleteListeners() {
-  // Delete book buttons
-  document.querySelectorAll('.delete-book-btn').forEach(btn => {
-    btn.addEventListener('click', async function(e) {
-      e.stopPropagation();
-      const bookId = this.dataset.bookId;
-      const book = appState.allBooks.find(b => b.id === bookId);
+  // Use event delegation - attach listener to parent container once
+  const booksList = document.getElementById('storiesList');
+  if (!booksList || booksList.dataset.delegated) return;
+  
+  booksList.dataset.delegated = 'true';
+  booksList.addEventListener('click', async function(e) {
+    const deleteBtn = e.target.closest('.delete-book-btn');
+    if (!deleteBtn) return;
+    
+    e.stopPropagation();
+    const bookId = deleteBtn.dataset.bookId;
+    const book = appState.allBooks.find(b => b.id === bookId);
 
-      if (confirm(`Are you sure you want to delete "${book?.bookName || 'this book'}" and all its parts?`)) {
-        try {
-          await appState.processor.deleteBook(bookId);
-          appState.expandedBooks.delete(bookId);
-          await loadBooks();
-          showSuccess('Book deleted successfully');
-        } catch (error) {
-          showError('Failed to delete book: ' + error.message);
-        }
+    if (confirm(`Are you sure you want to delete "${book?.bookName || 'this book'}" and all its parts?`)) {
+      try {
+        await appState.processor.deleteBook(bookId);
+        appState.expandedBooks.delete(bookId);
+        await loadBooks();
+        showSuccess('Book deleted successfully');
+      } catch (error) {
+        showError('Failed to delete book: ' + error.message);
       }
-    });
+    }
   });
 }
 

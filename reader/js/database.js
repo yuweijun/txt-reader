@@ -184,6 +184,72 @@ class TextReaderDB {
   }
 
   /**
+   * Get all books with their stories in a single batch query
+   * Fixes N+1 query problem when loading books list
+   */
+  async getAllBooksWithStories() {
+    if (!this.db) await this.init();
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction(['books', 'stories'], 'readonly');
+      const booksStore = transaction.objectStore('books');
+      const storiesStore = transaction.objectStore('stories');
+
+      const booksRequest = booksStore.getAll();
+      const storiesRequest = storiesStore.getAll();
+
+      let books = null;
+      let stories = null;
+
+      booksRequest.onsuccess = () => {
+        books = booksRequest.result;
+        if (stories !== null) {
+          resolve(combineResults());
+        }
+      };
+
+      storiesRequest.onsuccess = () => {
+        stories = storiesRequest.result;
+        if (books !== null) {
+          resolve(combineResults());
+        }
+      };
+
+      booksRequest.onerror = () => reject(booksRequest.error);
+      storiesRequest.onerror = () => reject(storiesRequest.error);
+
+      function combineResults() {
+        // Group stories by bookId
+        const storiesByBookId = {};
+        for (const story of stories) {
+          const bookId = story.bookId;
+          if (!storiesByBookId[bookId]) {
+            storiesByBookId[bookId] = [];
+          }
+          storiesByBookId[bookId].push(story);
+        }
+
+        // Attach stories to books and sort
+        for (const book of books) {
+          book.stories = storiesByBookId[book.id] || [];
+          // Sort stories by split index if they are split files
+          book.stories.sort((a, b) => {
+            if (a.splitIndex && b.splitIndex) {
+              return a.splitIndex - b.splitIndex;
+            }
+            return new Date(a.uploadTime) - new Date(b.uploadTime);
+          });
+        }
+
+        // Sort books by upload time (newest first)
+        books.sort((a, b) => new Date(b.uploadTime) - new Date(a.uploadTime));
+
+        return books;
+      }
+    });
+  }
+
+  /**
    * Add a story to the database
    */
   async addStory(storyData) {
