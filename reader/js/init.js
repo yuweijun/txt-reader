@@ -120,7 +120,15 @@ function setupEventListeners() {
 
   if (clearAllBtn) {
     clearAllBtn.addEventListener('click', async function() {
-      if (confirm('Are you sure you want to delete all books? This cannot be undone.')) {
+      const confirmed = await window.showConfirm({
+        title: 'Delete All Books',
+        message: 'Are you sure you want to delete all books? This cannot be undone.',
+        confirmText: 'Delete All',
+        cancelText: 'Cancel',
+        destructive: true
+      });
+      
+      if (confirmed) {
         try {
           await appState.db.clearAllData();
           await loadBooks();
@@ -405,7 +413,15 @@ function attachDeleteListeners() {
     const bookId = deleteBtn.dataset.bookId;
     const book = appState.allBooks.find(b => b.id === bookId);
 
-    if (confirm(`Are you sure you want to delete "${book?.bookName || 'this book'}" and all its parts?`)) {
+    const confirmed = await window.showConfirm({
+      title: 'Delete Book',
+      message: `Are you sure you want to delete "${book?.bookName || 'this book'}" and all its parts?`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      destructive: true
+    });
+
+    if (confirmed) {
       try {
         await appState.processor.deleteBook(bookId);
         appState.expandedBooks.delete(bookId);
@@ -452,27 +468,27 @@ function hideLoading() {
 }
 
 function showError(message) {
-  const toast = document.getElementById('errorToast');
-  const toastBody = toast?.querySelector('.toast-body');
-
-  if (toastBody) toastBody.textContent = message;
-  if (toast) {
-    const bsToast = new bootstrap.Toast(toast);
-    bsToast.show();
+  // Use iOS-style toast notification
+  if (window.iosModal) {
+    window.iosModal.error(message);
   } else {
-    alert(message);
+    // Fallback to native alert
+    window.showAlert({
+      title: 'Error',
+      message: message
+    });
   }
 }
 
 function showSuccess(message) {
-  const toast = document.getElementById('successToast');
-  const toastBody = toast?.querySelector('.toast-body');
-
-  if (toastBody) toastBody.textContent = message;
-  if (toast) {
-    const bsToast = new bootstrap.Toast(toast);
-    bsToast.show();
+  // Use iOS-style toast notification
+  if (window.iosModal) {
+    window.iosModal.success(message);
   } else {
-    alert(message);
+    // Fallback to native alert
+    window.showAlert({
+      title: 'Success',
+      message: message
+    });
   }
 }

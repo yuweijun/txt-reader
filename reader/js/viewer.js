@@ -1119,7 +1119,7 @@ function getTextForSpeech() {
 
 function toggleSpeech() {
   if (!speechSynthesis) {
-    alert('Speech synthesis not supported in this browser');
+    showAlert('Speech synthesis not supported in this browser');
     return;
   }
 

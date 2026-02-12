@@ -1,0 +1,329 @@
+/**
+ * iOS-style Modal Styles
+ * Modern, beautiful dialogs with frosted glass effect
+ */
+
+/* Modal Container */
+.ios-modal-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.ios-modal-container.ios-modal-visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.ios-modal-container.ios-modal-hiding {
+  opacity: 0;
+}
+
+/* Backdrop with blur */
+.ios-modal-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Dialog Box */
+.ios-modal-dialog {
+  position: relative;
+  width: 90%;
+  max-width: 320px;
+  transform: scale(0.9);
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.ios-modal-visible .ios-modal-dialog {
+  transform: scale(1);
+}
+
+.ios-modal-hiding .ios-modal-dialog {
+  transform: scale(0.9);
+}
+
+/* Modal Content - Frosted Glass Effect */
+.ios-modal-content {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.2),
+    0 0 0 0.5px rgba(255, 255, 255, 0.2) inset;
+}
+
+/* Dark theme support */
+@media (prefers-color-scheme: dark) {
+  .ios-modal-content {
+    background: rgba(44, 44, 46, 0.9);
+  }
+}
+
+/* Theme-aware dark mode */
+.theme-default .ios-modal-content,
+.theme-monokai .ios-modal-content,
+.theme-solarized .ios-modal-content,
+.theme-dracula .ios-modal-content,
+.theme-nord .ios-modal-content,
+.theme-darkgreen .ios-modal-content,
+.theme-griege-dark .ios-modal-content {
+  background: rgba(44, 44, 46, 0.92);
+}
+
+.theme-default .ios-modal-title,
+.theme-monokai .ios-modal-title,
+.theme-solarized .ios-modal-title,
+.theme-dracula .ios-modal-title,
+.theme-nord .ios-modal-title,
+.theme-darkgreen .ios-modal-title,
+.theme-griege-dark .ios-modal-title {
+  color: #ffffff;
+}
+
+.theme-default .ios-modal-message,
+.theme-monokai .ios-modal-message,
+.theme-solarized .ios-modal-message,
+.theme-dracula .ios-modal-message,
+.theme-nord .ios-modal-message,
+.theme-darkgreen .ios-modal-message,
+.theme-griege-dark .ios-modal-message {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.theme-default .ios-modal-btn,
+.theme-monokai .ios-modal-btn,
+.theme-solarized .ios-modal-btn,
+.theme-dracula .ios-modal-btn,
+.theme-nord .ios-modal-btn,
+.theme-darkgreen .ios-modal-btn,
+.theme-griege-dark .ios-modal-btn {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.theme-default .ios-modal-btn:active,
+.theme-monokai .ios-modal-btn:active,
+.theme-solarized .ios-modal-btn:active,
+.theme-dracula .ios-modal-btn:active,
+.theme-nord .ios-modal-btn:active,
+.theme-darkgreen .ios-modal-btn:active,
+.theme-griege-dark .ios-modal-btn:active {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Header */
+.ios-modal-header {
+  padding: 20px 16px 16px;
+  text-align: center;
+}
+
+.ios-modal-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  color: #000000;
+  line-height: 1.3;
+}
+
+.ios-modal-message {
+  margin: 6px 0 0;
+  font-size: 13px;
+  font-weight: 400;
+  color: rgba(0, 0, 0, 0.6);
+  line-height: 1.4;
+}
+
+/* Actions */
+.ios-modal-actions {
+  display: flex;
+  border-top: 0.5px solid rgba(0, 0, 0, 0.15);
+}
+
+/* Single button layout */
+.ios-modal-actions:has(.ios-modal-btn-primary:only-child) {
+  flex-direction: column;
+}
+
+/* Buttons */
+.ios-modal-btn {
+  flex: 1;
+  padding: 12px 8px;
+  min-height: 44px;
+  font-size: 17px;
+  font-weight: 400;
+  background: transparent;
+  border: none;
+  border-left: 0.5px solid rgba(0, 0, 0, 0.15);
+  color: #007AFF;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ios-modal-btn:first-child {
+  border-left: none;
+}
+
+.ios-modal-btn:active {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.ios-modal-btn:focus {
+  outline: none;
+}
+
+.ios-modal-btn:focus-visible {
+  outline: 2px solid #007AFF;
+  outline-offset: -2px;
+}
+
+/* Cancel button */
+.ios-modal-btn-cancel {
+  font-weight: 400;
+}
+
+/* Confirm button */
+.ios-modal-btn-confirm {
+  font-weight: 600;
+}
+
+/* Primary button (for alerts) */
+.ios-modal-btn-primary {
+  font-weight: 600;
+}
+
+/* Destructive action */
+.ios-modal-btn-destructive {
+  color: #FF3B30;
+}
+
+/* ============================================
+   Toast Notifications
+   ============================================ */
+
+.ios-toast-container {
+  position: fixed;
+  top: calc(20px + var(--safe-area-top, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10001;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.ios-toast {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 100px;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 500;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  transform: translateY(-20px) scale(0.9);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  pointer-events: auto;
+}
+
+.ios-toast-show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.ios-toast-hide {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.95);
+}
+
+.ios-toast-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ios-toast-success .ios-toast-icon {
+  background: #34C759;
+  color: #ffffff;
+}
+
+.ios-toast-error .ios-toast-icon {
+  background: #FF3B30;
+  color: #ffffff;
+}
+
+.ios-toast-info .ios-toast-icon {
+  background: #007AFF;
+  color: #ffffff;
+}
+
+.ios-toast-message {
+  max-width: 280px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ============================================
+   Mobile Responsive
+   ============================================ */
+
+@media (max-width: 576px) {
+  .ios-modal-dialog {
+    width: calc(100% - 32px);
+    max-width: none;
+  }
+
+  .ios-modal-btn {
+    min-height: 48px;
+  }
+}
+
+/* ============================================
+   Reduced Motion Support
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .ios-modal-container,
+  .ios-modal-dialog,
+  .ios-toast {
+    transition: opacity 0.15s ease;
+  }
+
+  .ios-modal-dialog {
+    transform: none;
+  }
+
+  .ios-modal-visible .ios-modal-dialog,
+  .ios-modal-hiding .ios-modal-dialog {
+    transform: none;
+  }
+}
