@@ -1538,7 +1538,19 @@ async function startSpeech() {
   // Start screen dim timer for mobile energy saving
   startScreenDimTimer();
 
-  speakNext();
+  // Prime the speech synthesis engine - required on some browsers (especially iOS)
+  // Cancel any pending speech to ensure clean state
+  speechSynthesis.cancel();
+  
+  // Re-select voice if not already set (voices may have loaded async)
+  if (!chineseVoice) {
+    chineseVoice = selectChineseMaleVoice();
+  }
+
+  // Small delay to allow cancel to complete before speaking
+  setTimeout(() => {
+    speakNext();
+  }, 50);
 }
 
 async function pauseSpeech() {
