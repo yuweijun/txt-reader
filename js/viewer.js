@@ -34,6 +34,8 @@ let currentChapter = null;
 let totalPages = 1;
 let filteredChapters = [];
 let readingHistory = null;
+let currentBookId = null;
+let allBookStories = [];
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async function() {
@@ -67,6 +69,19 @@ async function initializeViewer() {
 
   // Load story data from database to get the title
   const storyData = await db.getStoryById(storyId);
+
+  // Store bookId and load all stories in the book for cross-story search
+  currentBookId = storyData ? storyData.bookId : null;
+  if (currentBookId) {
+    allBookStories = await db.getStoriesByBookId(currentBookId);
+    // Sort by splitIndex if available
+    allBookStories.sort((a, b) => {
+      if (a.splitIndex && b.splitIndex) {
+        return a.splitIndex - b.splitIndex;
+      }
+      return 0;
+    });
+  }
 
   // Load reading history
   readingHistory = await db.getReadingHistory(storyId);
@@ -717,15 +732,30 @@ function updateChaptersList() {
   chaptersToShow.forEach((chapter, displayIndex) => {
     const li = document.createElement('li');
     li.className = 'chapter-item';
-    // Use the actual index in the chapters array for navigation
-    const actualIndex = chapter.originalIndex !== undefined ? chapter.originalIndex : chapters.indexOf(chapter);
-    li.dataset.index = actualIndex;
-    li.textContent = truncateChapterTitle(chapter.title);
-    li.title = chapter.title;
-    li.addEventListener('click', function() {
-      const chapterIndex = parseInt(this.dataset.index);
-      scrollToChapter(chapterIndex);
-    });
+    
+    // Check if this is a cross-story result
+    if (chapter.isCurrentStory === false) {
+      // Cross-story chapter - navigate to different story
+      li.classList.add('cross-story-chapter');
+      li.dataset.storyId = chapter.storyId;
+      li.innerHTML = `<span class="chapter-title-text">${truncateChapterTitle(chapter.title)}</span><span class="story-indicator">${truncateChapterTitle(chapter.storyTitle)}</span>`;
+      li.title = `${chapter.title} (${chapter.storyTitle})`;
+      li.addEventListener('click', function() {
+        // Navigate to the other story
+        window.location.href = `reader.html#view/${chapter.storyId}`;
+      });
+    } else {
+      // Current story chapter
+      const actualIndex = chapter.originalIndex !== undefined ? chapter.originalIndex : chapters.indexOf(chapter);
+      li.dataset.index = actualIndex;
+      li.textContent = truncateChapterTitle(chapter.title);
+      li.title = chapter.title;
+      li.addEventListener('click', function() {
+        const chapterIndex = parseInt(this.dataset.index);
+        scrollToChapter(chapterIndex);
+      });
+    }
+    
     chapterList.appendChild(li);
   });
 }
@@ -738,14 +768,46 @@ function filterChapters(searchTerm) {
   }
 
   const term = searchTerm.toLowerCase().trim();
-  filteredChapters = chapters.filter((chapter) => {
+  
+  // First, search current story's chapters
+  const currentStoryResults = chapters.filter((chapter) => {
     return chapter.title.toLowerCase().includes(term);
   }).map((chapter) => {
     return {
       ...chapter,
-      originalIndex: chapters.indexOf(chapter)
+      originalIndex: chapters.indexOf(chapter),
+      isCurrentStory: true,
+      storyId: storyId
     };
   });
+
+  // Then, search other stories in the same book
+  const otherStoryResults = [];
+  if (allBookStories && allBookStories.length > 1) {
+    for (const story of allBookStories) {
+      // Skip current story (already searched)
+      if (story.id === storyId) continue;
+      
+      if (story.chapters && story.chapters.length > 0) {
+        const matchedChapters = story.chapters.filter((ch) => {
+          return ch.title.toLowerCase().includes(term);
+        }).map((ch, index) => {
+          return {
+            title: ch.title,
+            anchorId: ch.anchorId,
+            lineNumber: ch.lineNumber,
+            isCurrentStory: false,
+            storyId: story.id,
+            storyTitle: story.extractedTitle || story.fileName
+          };
+        });
+        otherStoryResults.push(...matchedChapters);
+      }
+    }
+  }
+
+  // Combine results: current story first, then other stories
+  filteredChapters = [...currentStoryResults, ...otherStoryResults];
 
   updateChaptersList();
 }
