@@ -76,7 +76,7 @@ Then navigate to `http://localhost:8000`
 ```
 txt-reader/
 ├── index.html          # Main page - Book library management
-├── viewer.html         # Reader page - Text viewing with chapters
+├── reader.html         # Reader page - Text viewing with chapters
 ├── css/
 │   ├── index.css       # Styles for index page
 │   ├── viewer.css      # Styles for viewer page

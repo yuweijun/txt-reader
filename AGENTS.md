@@ -31,7 +31,7 @@ User uploads .txt file
     → UI renders book list
 
 User opens a story
-    → viewer.html loads story from IndexedDB
+    → reader.html loads story from IndexedDB
     → Renders content with chapter navigation
     → Saves/restores reading progress via histories store
 ```
