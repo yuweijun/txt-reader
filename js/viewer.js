@@ -1525,23 +1525,57 @@ function startSpeech() {
 
   currentSpeechIndex = getTextIndexFromScrollPosition(scrollTop);
 
-  isSpeaking = true;
-  isPaused = false;
-  updateSpeechButton();
-
-  // Prime the speech synthesis engine - required on some browsers (especially iOS)
   // Cancel any pending speech to ensure clean state
-  speechSynthesis.cancel();
-  
+  // Do this first before any other operations
+  if (speechSynthesis.speaking || speechSynthesis.pending) {
+    speechSynthesis.cancel();
+  }
+
   // Re-select voice if not already set (voices may have loaded async)
   if (!chineseVoice) {
     chineseVoice = selectChineseMaleVoice();
   }
 
+  // Set state flags BEFORE speaking
+  // This ensures speakNext() has correct state when called
+  isSpeaking = true;
+  isPaused = false;
+  updateSpeechButton();
+
   // IMPORTANT: Call speakNext() synchronously within user gesture
   // On iOS/Safari, speech synthesis must be triggered synchronously
   // in the user gesture event handler, not in async callbacks
-  speakNext();
+  // Create and speak the first utterance immediately in this synchronous block
+  if (currentSpeechIndex < speechTextQueue.length) {
+    const text = speechTextQueue[currentSpeechIndex];
+    speechUtterance = new SpeechSynthesisUtterance(text);
+
+    if (chineseVoice) {
+      speechUtterance.voice = chineseVoice;
+    }
+    speechUtterance.lang = 'zh-CN';
+    speechUtterance.rate = speechRate;
+    speechUtterance.pitch = 1.0;
+
+    speechUtterance.onend = () => {
+      if (isSpeaking && !isPaused) {
+        currentSpeechIndex++;
+        checkAutoScroll();
+        setTimeout(() => speakNext(), 0);
+      }
+    };
+
+    speechUtterance.onerror = (event) => {
+      if (event.error !== 'canceled' && event.error !== 'interrupted') {
+        console.error('Speech error:', event.error);
+      }
+    };
+
+    highlightSpeechLine(currentSpeechIndex);
+
+    // This MUST happen synchronously in the user gesture
+    speechSynthesis.speak(speechUtterance);
+  }
 
   // Start async tasks after speech is triggered (non-blocking)
   requestWakeLock();
