@@ -1516,7 +1516,7 @@ function toggleSpeech() {
   }
 }
 
-async function startSpeech() {
+function startSpeech() {
   speechTextQueue = getTextForSpeech();
   if (speechTextQueue.length === 0) return;
 
@@ -1529,15 +1529,6 @@ async function startSpeech() {
   isPaused = false;
   updateSpeechButton();
 
-  // Request wake lock to prevent screen sleep
-  await requestWakeLock();
-
-  // Start silent audio to keep browser active in background
-  await startSilentAudio();
-
-  // Start screen dim timer for mobile energy saving
-  startScreenDimTimer();
-
   // Prime the speech synthesis engine - required on some browsers (especially iOS)
   // Cancel any pending speech to ensure clean state
   speechSynthesis.cancel();
@@ -1547,10 +1538,15 @@ async function startSpeech() {
     chineseVoice = selectChineseMaleVoice();
   }
 
-  // Small delay to allow cancel to complete before speaking
-  setTimeout(() => {
-    speakNext();
-  }, 50);
+  // IMPORTANT: Call speakNext() synchronously within user gesture
+  // On iOS/Safari, speech synthesis must be triggered synchronously
+  // in the user gesture event handler, not in async callbacks
+  speakNext();
+
+  // Start async tasks after speech is triggered (non-blocking)
+  requestWakeLock();
+  startSilentAudio();
+  startScreenDimTimer();
 }
 
 async function pauseSpeech() {
