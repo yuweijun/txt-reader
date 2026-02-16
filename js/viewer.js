@@ -1239,6 +1239,114 @@ function stopScreenDimTimer() {
   brightenScreen();
 }
 
+// Silent audio to keep browser active in background
+let silentAudio = null;
+let silentAudioContext = null;
+
+function createSilentAudio() {
+  if (silentAudio) return silentAudio;
+  
+  // Create a silent audio element
+  silentAudio = document.createElement('audio');
+  silentAudio.id = 'silentBackgroundAudio';
+  silentAudio.loop = true;
+  silentAudio.playsinline = true;
+  silentAudio.setAttribute('playsinline', '');
+  silentAudio.setAttribute('webkit-playsinline', '');
+  
+  // Create silent audio using Web Audio API and convert to blob
+  try {
+    silentAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const sampleRate = silentAudioContext.sampleRate;
+    const duration = 1; // 1 second of silence
+    const numChannels = 1;
+    const numFrames = sampleRate * duration;
+    
+    // Create audio buffer with silence
+    const audioBuffer = silentAudioContext.createBuffer(numChannels, numFrames, sampleRate);
+    
+    // Convert to WAV blob
+    const wavBlob = audioBufferToWav(audioBuffer);
+    silentAudio.src = URL.createObjectURL(wavBlob);
+  } catch (e) {
+    // Fallback: use a data URI for minimal silent audio
+    // This is a tiny valid MP3 file (silence)
+    silentAudio.src = 'data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA/+M4wAAAAAAAAAAAAEluZm8AAAAPAAAAAwAAAbAAqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAAbD/k2jlAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/+M4wAADCAHkCAAAAAANIAAAAAExBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/jOMQoAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/jOMQoAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVQ==';
+  }
+  
+  document.body.appendChild(silentAudio);
+  return silentAudio;
+}
+
+// Helper function to convert AudioBuffer to WAV blob
+function audioBufferToWav(buffer) {
+  const numChannels = buffer.numberOfChannels;
+  const sampleRate = buffer.sampleRate;
+  const format = 1; // PCM
+  const bitDepth = 16;
+  
+  const bytesPerSample = bitDepth / 8;
+  const blockAlign = numChannels * bytesPerSample;
+  
+  const dataLength = buffer.length * blockAlign;
+  const bufferLength = 44 + dataLength;
+  
+  const arrayBuffer = new ArrayBuffer(bufferLength);
+  const view = new DataView(arrayBuffer);
+  
+  // WAV header
+  writeString(view, 0, 'RIFF');
+  view.setUint32(4, 36 + dataLength, true);
+  writeString(view, 8, 'WAVE');
+  writeString(view, 12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, format, true);
+  view.setUint16(22, numChannels, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * blockAlign, true);
+  view.setUint16(32, blockAlign, true);
+  view.setUint16(34, bitDepth, true);
+  writeString(view, 36, 'data');
+  view.setUint32(40, dataLength, true);
+  
+  // Write silence (zeros)
+  const offset = 44;
+  for (let i = 0; i < buffer.length; i++) {
+    for (let channel = 0; channel < numChannels; channel++) {
+      const sample = 0; // silence
+      view.setInt16(offset + (i * blockAlign) + (channel * bytesPerSample), sample, true);
+    }
+  }
+  
+  return new Blob([arrayBuffer], { type: 'audio/wav' });
+}
+
+function writeString(view, offset, string) {
+  for (let i = 0; i < string.length; i++) {
+    view.setUint8(offset + i, string.charCodeAt(i));
+  }
+}
+
+async function startSilentAudio() {
+  const audio = createSilentAudio();
+  try {
+    // Resume audio context if suspended (required for autoplay)
+    if (silentAudioContext && silentAudioContext.state === 'suspended') {
+      await silentAudioContext.resume();
+    }
+    await audio.play();
+  } catch (e) {
+    console.warn('Silent audio play failed:', e.message);
+  }
+}
+
+function stopSilentAudio() {
+  if (silentAudio) {
+    silentAudio.pause();
+    silentAudio.currentTime = 0;
+  }
+}
+
 async function requestWakeLock() {
   if ('wakeLock' in navigator) {
     try {
@@ -1424,6 +1532,9 @@ async function startSpeech() {
   // Request wake lock to prevent screen sleep
   await requestWakeLock();
 
+  // Start silent audio to keep browser active in background
+  await startSilentAudio();
+
   // Start screen dim timer for mobile energy saving
   startScreenDimTimer();
 
@@ -1439,6 +1550,9 @@ async function pauseSpeech() {
     // Release wake lock when paused to save battery
     await releaseWakeLock();
 
+    // Stop silent audio when paused
+    stopSilentAudio();
+
     // Stop dim timer and brighten screen when paused
     stopScreenDimTimer();
   }
@@ -1451,6 +1565,9 @@ async function resumeSpeech() {
 
     // Re-acquire wake lock when resuming
     await requestWakeLock();
+
+    // Restart silent audio when resuming
+    await startSilentAudio();
 
     // Restart screen dim timer when resuming
     startScreenDimTimer();
@@ -1467,6 +1584,9 @@ async function stopSpeech() {
   isPaused = false;
   currentSpeechIndex = 0;
   updateSpeechButton();
+
+  // Stop silent audio when stopped
+  stopSilentAudio();
 
   // Stop dim timer and brighten screen when stopped
   stopScreenDimTimer();
