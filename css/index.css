@@ -43,7 +43,6 @@ body {
 }
 
 /* Remove borders from buttons in main card */
-.main-card .btn-group .btn,
 .main-card .btn {
   border: none !important;
   box-shadow: none !important;
@@ -74,12 +73,6 @@ body {
   font-size: 13px;
 }
 
-#textContent {
-  font-size: 14px;
-  padding: 10px;
-  resize: none;
-}
-
 /* Book item styling */
 .book-item {
   background: var(--bg-secondary, rgba(26, 26, 26, 0.95));
@@ -96,33 +89,60 @@ body {
   color: var(--heading-color, #4fc3f7);
 }
 
+/* Tree view folder icon */
+.tree-folder-icon {
+  color: var(--btn-hover-color, var(--heading-color));
+  font-size: 1.1em;
+  transition: transform 0.2s ease;
+}
+
+/* Tree structure styling */
 .book-stories {
-  margin-top: 8px;
+  position: relative;
+  margin-left: 12px;
+}
+
+.tree-children {
+  position: relative;
+}
+
+/* Story item in tree */
+.story-item {
+  position: relative;
+  padding: 4px 8px 4px 24px;
+  margin-bottom: 2px;
+  background: transparent;
+  border-bottom: 1px solid var(--border-color, rgba(224, 224, 224, 0.1));
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.story-item:hover {
+  background-color: var(--btn-hover-bg, rgba(79, 195, 247, 0.1));
 }
 
 .story-item:active {
-  background: var(--current-chapter-bg, rgba(79, 195, 247, 0.1));
+  background-color: var(--btn-active-bg, rgba(79, 195, 247, 0.2));
 }
 
-/* Story items */
-.story-item {
-  background: var(--bg-secondary, rgba(26, 26, 26, 0.95));
-  color: var(--text-primary, #e0e0e0);
-  padding: 12px;
-  margin-bottom: 8px;
-  border-bottom: 1px solid var(--border-color, rgba(224, 224, 224, 0.1));
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+/* Story link wrapper */
+.story-link-wrapper {
+  flex: 1;
 }
 
-/* Story item link styling - 3% lighter than book name color */
-.story-item a {
-  color: #5bcbff;
+.story-item .story-title {
+  color: var(--btn-hover-color, var(--heading-color));
+  font-size: 0.9em;
+  line-height: 1.4;
 }
 
-.story-item a:hover {
-  color: var(--heading-color, #4fc3f7);
+.story-item:hover .story-title {
+  color: var(--heading-color);
+}
+
+.story-item .text-muted {
+  font-size: 0.85em;
+  white-space: nowrap;
 }
 
 /* Button styling - small buttons without borders */
@@ -161,11 +181,6 @@ body {
   margin: 0;
   font-size: 14px;
   color: var(--header-text-color, #e0e0e0);
-}
-
-.section-header .btn-group .btn {
-  padding: 4px 8px;
-  font-size: 11px;
 }
 
 /* Empty and loading states */
@@ -291,13 +306,6 @@ body {
     border-radius: 10px;
   }
 
-  /* Remove borders from buttons in main card on mobile */
-  .main-card .btn-group .btn,
-  .main-card .btn {
-    border: none !important;
-    box-shadow: none !important;
-  }
-
   .book-item {
     padding: 10px;
     border-bottom: 1px solid var(--border-color, rgba(224, 224, 224, 0.1));
@@ -305,25 +313,6 @@ body {
 
   .book-header h5 {
     font-size: 15px;
-  }
-
-  /* Minimum 44px touch target for story items */
-  .story-item {
-    min-height: 44px;
-    padding: 12px 10px;
-    border-bottom: 1px solid var(--border-color, rgba(224, 224, 224, 0.1));
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  /* Mobile story item link styling */
-  .story-item a {
-    color: #5bcbff;
-  }
-
-  .story-item a:hover {
-    color: var(--heading-color, #4fc3f7);
   }
 
   .btn-link {
@@ -348,10 +337,5 @@ body {
   .upload-row .btn {
     flex: 1;
     min-height: 44px;
-  }
-
-  /* Form inputs - prevent iOS zoom */
-  #textContent {
-    font-size: 16px;
   }
 }

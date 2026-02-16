@@ -3,28 +3,15 @@
  * Handles database initialization and data synchronization
  */
 
-// Fix iOS 100vh issue - set CSS custom property for true viewport height
-function setViewportHeight() {
-  const vh = window.innerHeight * 0.01;
-  document.documentElement.style.setProperty('--vh', `${vh}px`);
+// Initialize iOS viewport height handling
+if (window.initializeIOSViewport) {
+  window.initializeIOSViewport();
 }
 
-// Set initial value and update on resize/orientation change
-setViewportHeight();
-window.addEventListener('resize', window.debounce(setViewportHeight, 100));
-window.addEventListener('orientationchange', () => {
-  setTimeout(setViewportHeight, 100);
-});
-
-function applyTheme() {
-  const savedTheme = localStorage.getItem('preferredViewerTheme') || 'default';
-  if (window.themes[savedTheme]) {
-    document.body.classList.add(window.themes[savedTheme]);
-  }
+// Apply theme immediately using shared utility
+if (window.applyTheme) {
+  window.applyTheme();
 }
-
-// Apply theme immediately
-applyTheme();
 
 // Application state
 const appState = {
@@ -38,7 +25,7 @@ const appState = {
   isProcessing: false
 };
 
-document.addEventListener('DOMContentLoaded', async function() {
+document.addEventListener('DOMContentLoaded', async function () {
   try {
     // Initialize database and processor
     appState.db = new TextReaderDB();
@@ -58,48 +45,27 @@ document.addEventListener('DOMContentLoaded', async function() {
 });
 
 function setupEventListeners() {
-  // Text content input
-  const textContent = document.getElementById('textContent');
-  const processTextBtn = document.getElementById('processTextBtn');
-
-  if (textContent && processTextBtn) {
-    textContent.addEventListener('input', function() {
-      processTextBtn.disabled = this.value.trim().length === 0;
-    });
-  }
-
   // File input
   const fileInput = document.getElementById('fileInput');
   const processFileBtn = document.getElementById('processFileBtn');
 
   if (fileInput && processFileBtn) {
-    fileInput.addEventListener('change', function() {
+    fileInput.addEventListener('change', function () {
       processFileBtn.disabled = !this.files || this.files.length === 0;
     });
   }
 
-  // Process buttons
-  if (processTextBtn) {
-    processTextBtn.addEventListener('click', processTextContent);
-  }
+  // Process button
   if (processFileBtn) {
     processFileBtn.addEventListener('click', processSelectedFile);
   }
 
   // Navigation buttons
-  const refreshBtn = document.getElementById('refreshBtn');
   const prevPageBtn = document.getElementById('prevPageBtn');
   const nextPageBtn = document.getElementById('nextPageBtn');
-  const clearAllBtn = document.getElementById('clearAllBtn');
-
-  if (refreshBtn) {
-    refreshBtn.addEventListener('click', async function() {
-      await loadBooks();
-    });
-  }
 
   if (prevPageBtn) {
-    prevPageBtn.addEventListener('click', function() {
+    prevPageBtn.addEventListener('click', function () {
       if (appState.currentPage > 1) {
         appState.currentPage--;
         displayBooks();
@@ -109,7 +75,7 @@ function setupEventListeners() {
   }
 
   if (nextPageBtn) {
-    nextPageBtn.addEventListener('click', function() {
+    nextPageBtn.addEventListener('click', function () {
       if (appState.currentPage < appState.totalPages) {
         appState.currentPage++;
         displayBooks();
@@ -118,75 +84,14 @@ function setupEventListeners() {
     });
   }
 
-  if (clearAllBtn) {
-    clearAllBtn.addEventListener('click', async function() {
-      const confirmed = await window.showConfirm({
-        title: 'Delete All Books',
-        message: 'Are you sure you want to delete all books? This cannot be undone.',
-        confirmText: 'Delete All',
-        cancelText: 'Cancel',
-        destructive: true
-      });
-      
-      if (confirmed) {
-        try {
-          await appState.db.clearAllData();
-          await loadBooks();
-          showSuccess('All books deleted successfully');
-        } catch (error) {
-          showError('Failed to clear data: ' + error.message);
-        }
-      }
-    });
-  }
-
   // Search input
   const searchInput = document.getElementById('searchInput');
   if (searchInput) {
-    searchInput.addEventListener('input', window.debounce(function() {
+    searchInput.addEventListener('input', window.debounce(function () {
       appState.currentPage = 1;
       displayBooks();
       updatePagination();
     }, 300));
-  }
-}
-
-async function processTextContent() {
-  const textContent = document.getElementById('textContent');
-  const processTextBtn = document.getElementById('processTextBtn');
-
-  if (!textContent || !textContent.value.trim()) {
-    showError('Please enter some text content');
-    return;
-  }
-
-  appState.isProcessing = true;
-  if (processTextBtn) processTextBtn.disabled = true;
-
-  try {
-    showLoading('Processing text content...');
-
-    const result = await appState.processor.processTextContent(textContent.value);
-
-    // Clear input
-    textContent.value = '';
-    if (processTextBtn) processTextBtn.disabled = true;
-
-    // Reload books
-    await loadBooks();
-
-    hideLoading();
-    showSuccess('Text content processed successfully!');
-
-    // Navigate to view
-    window.location.href = `viewer.html#view/${result.storyIds[0]}`;
-
-  } catch (error) {
-    hideLoading();
-    showError('Failed to process text: ' + error.message);
-    if (processTextBtn) processTextBtn.disabled = false;
-  } finally {
-    appState.isProcessing = false;
   }
 }
 
@@ -233,9 +138,32 @@ async function processSelectedFile() {
     const chapterBoundaries = appState.processor.detectChapters(fileContent);
     let result;
 
-    if (chapterBoundaries.length > 50) {
-      // Use splitting functionality for files with more than 50 chapters
-      result = await appState.processor.processAndSplitFile(file);
+    console.log('Chapter boundaries detected:', chapterBoundaries.length);
+    if (chapterBoundaries.length > 0) {
+      console.log('First chapter:', chapterBoundaries[0].title);
+      console.log('Last chapter:', chapterBoundaries[chapterBoundaries.length - 1].title);
+    }
+
+    // Check if we need to split based on chapter numbers or based line numbers
+    let shouldSplitByChapter = false;
+    if (chapterBoundaries.length > 0) {
+      const lastChapterTitle = chapterBoundaries[chapterBoundaries.length - 1].title;
+      const endChapterNum = window.extractChapterNumber(lastChapterTitle);
+
+      console.log('End chapter number:', endChapterNum);
+
+      // Split if the last chapter number is divisible by 50 (50, 100, 150, etc.)
+      if (endChapterNum !== null) {
+        shouldSplitByChapter = endChapterNum > 50;
+        console.log('endChapterNum :', endChapterNum);
+      }
+    }
+
+    console.log('Should split:', shouldSplitByChapter);
+
+    if (shouldSplitByChapter) {
+      // Use splitting functionality for files that end at chapter 49, 99, 149, etc.
+      result = await appState.processor.processAndSplitFile(file, true);
       hideLoading();
       showSuccess(`File "${file.name}" split into ${result.storyIds.length} parts successfully!`);
     } else {
@@ -250,9 +178,6 @@ async function processSelectedFile() {
 
     // Reload books
     await loadBooks();
-
-    // Navigate to first story
-    window.location.href = `viewer.html#view/${result.storyIds[0]}`;
 
   } catch (error) {
     hideLoading();
@@ -335,16 +260,15 @@ function displayBooks() {
   let html = '';
   pageBooks.forEach(book => {
     const isExpanded = appState.expandedBooks.has(book.id);
-    const expandIcon = isExpanded ? 'fa-chevron-down' : 'fa-chevron-right';
+    const folderIcon = isExpanded ? 'fa-folder-open' : 'fa-folder';
     const storiesDisplay = isExpanded ? 'block' : 'none';
 
     html += `
-      <div class="book-item" data-book-id="${book.id}">
+      <div class="book-item tree-item" data-book-id="${book.id}">
         <div class="book-header d-flex justify-content-between align-items-center">
-          <div class="flex-grow-1" onclick="toggleBook('${book.id}')" style="cursor: pointer;">
-            <h5 class="mb-1">
-              <i class="fas ${expandIcon} me-2 text-muted"></i>
-              <i class="fas fa-book text-primary me-2"></i>
+          <div class="flex-grow-1 d-flex align-items-center" onclick="toggleBook('${book.id}')" style="cursor: pointer;">
+            <i class="fas ${folderIcon} me-2 tree-folder-icon"></i>
+            <h5 class="mb-0">
               ${window.escapeHtml(book.bookName)}
             </h5>
           </div>
@@ -354,21 +278,18 @@ function displayBooks() {
             </button>
           </div>
         </div>
-        <div class="book-stories ms-4 mt-2" style="display: ${storiesDisplay}">
+        <div class="book-stories tree-children" style="display: ${storiesDisplay}">
     `;
 
     // Add stories under book
-    book.stories.forEach(story => {
+    book.stories.forEach((story, index) => {
       const fileSize = window.formatFileSize(story.fileSize);
       const storyTitle = window.escapeHtml(story.extractedTitle || story.originalFileName.replace(/\.txt$/i, ''));
 
       html += `
-        <div class="story-item d-flex justify-content-between align-items-center py-2 border-bottom">
-          <div class="d-flex align-items-center">
-            <a href="viewer.html#view/${story.id}" class="text-decoration-none">
-              <i class="fas fa-file-alt text-muted me-2"></i>
-              ${storyTitle}
-            </a>
+        <div class="story-item d-flex justify-content-between align-items-center" onclick="window.location.href='viewer.html#view/${story.id}'" style="cursor: pointer;">
+          <div class="d-flex align-items-center story-link-wrapper">
+            <span class="story-title">${storyTitle}</span>
           </div>
           <div class="text-muted small">
             ${fileSize}
@@ -390,7 +311,7 @@ function displayBooks() {
 }
 
 // Toggle book expand/collapse
-window.toggleBook = function(bookId) {
+window.toggleBook = function (bookId) {
   if (appState.expandedBooks.has(bookId)) {
     appState.expandedBooks.delete(bookId);
   } else {
@@ -403,33 +324,22 @@ function attachDeleteListeners() {
   // Use event delegation - attach listener to parent container once
   const booksList = document.getElementById('storiesList');
   if (!booksList || booksList.dataset.delegated) return;
-  
+
   booksList.dataset.delegated = 'true';
-  booksList.addEventListener('click', async function(e) {
+  booksList.addEventListener('click', async function (e) {
     const deleteBtn = e.target.closest('.delete-book-btn');
     if (!deleteBtn) return;
-    
+
     e.stopPropagation();
     const bookId = deleteBtn.dataset.bookId;
-    const book = appState.allBooks.find(b => b.id === bookId);
 
-    const confirmed = await window.showConfirm({
-      title: 'Delete Book',
-      message: `Are you sure you want to delete "${book?.bookName || 'this book'}" and all its parts?`,
-      confirmText: 'Delete',
-      cancelText: 'Cancel',
-      destructive: true
-    });
-
-    if (confirmed) {
-      try {
-        await appState.processor.deleteBook(bookId);
-        appState.expandedBooks.delete(bookId);
-        await loadBooks();
-        showSuccess('Book deleted successfully');
-      } catch (error) {
-        showError('Failed to delete book: ' + error.message);
-      }
+    try {
+      await appState.processor.deleteBook(bookId);
+      appState.expandedBooks.delete(bookId);
+      await loadBooks();
+      showSuccess('Book deleted successfully');
+    } catch (error) {
+      showError('Failed to delete book: ' + error.message);
     }
   });
 }

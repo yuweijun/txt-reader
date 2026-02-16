@@ -3,18 +3,10 @@
  * Handles the text viewing functionality with chapter navigation
  */
 
-// Fix iOS 100vh issue - set CSS custom property for true viewport height
-function setViewportHeight() {
-  const vh = window.innerHeight * 0.01;
-  document.documentElement.style.setProperty('--vh', `${vh}px`);
+// Initialize iOS viewport height handling
+if (window.initializeIOSViewport) {
+  window.initializeIOSViewport();
 }
-
-// Set initial value and update on resize/orientation change
-setViewportHeight();
-window.addEventListener('resize', window.debounce(setViewportHeight, 100));
-window.addEventListener('orientationchange', () => {
-  setTimeout(setViewportHeight, 100);
-});
 
 // Auto-hide functionality variables
 let db = null;
@@ -26,21 +18,6 @@ let isSidebarHidden = false;
 let isSidebarPinned = false;
 let lastScrollTop = 0;
 let isScrollingInSidebar = false;
-
-function applyTheme(theme) {
-  // Remove all theme classes
-  Object.values(window.themes).forEach(themeClass => {
-    document.body.classList.remove(themeClass);
-  });
-
-  // Apply selected theme
-  if (window.themes[theme]) {
-    document.body.classList.add(window.themes[theme]);
-  }
-
-  // Save to localStorage
-  localStorage.setItem('preferredViewerTheme', theme);
-}
 
 // Get story ID from URL hash
 function getStoryIdFromUrl() {
@@ -125,7 +102,7 @@ async function initializeViewer() {
   window.addEventListener('beforeunload', saveReadingProgress);
 
   // Load saved theme
-  const savedTheme = localStorage.getItem('preferredViewerTheme') || 'default';
+  const savedTheme = localStorage.getItem('preferredViewerTheme') || 'maize-yello';
   applyTheme(savedTheme);
 
   // Add event listeners to theme options
@@ -293,22 +270,17 @@ function setupPaginationClickHandler() {
   const contentContainer = document.querySelector('.content-container');
   if (!contentContainer) return;
 
-  // Bottom 20% and left/right 25% areas trigger pagination
+  // Bottom 20% area triggers pagination
   const BOTTOM_TAP_THRESHOLD = 0.80; // Bottom 20% of screen
-  const SIDE_TAP_THRESHOLD = 0.25; // Left/right 25% of screen width
 
   function handlePaginationClick(e) {
     const rect = contentContainer.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
     const clickY = e.clientY - rect.top;
     const containerHeight = rect.height;
-    const containerWidth = rect.width;
     const bottomThreshold = containerHeight * BOTTOM_TAP_THRESHOLD;
-    const leftSideThreshold = containerWidth * SIDE_TAP_THRESHOLD;
-    const rightSideThreshold = containerWidth * (1 - SIDE_TAP_THRESHOLD);
 
-    // Check if click is in bottom, left, or right pagination zones
-    if (clickY >= bottomThreshold || clickX <= leftSideThreshold || clickX >= rightSideThreshold) {
+    // Check if click is in bottom pagination zone
+    if (clickY >= bottomThreshold) {
       const scrollAmount = containerHeight * 0.9;
       contentContainer.scrollBy({
         top: scrollAmount,
@@ -319,26 +291,58 @@ function setupPaginationClickHandler() {
 
   contentContainer.addEventListener('click', handlePaginationClick);
 
+  let touchStartY = 0;
+  let touchStartTime = 0;
+  let isInPaginationZone = false;
+  let hasMoved = false;
+
   contentContainer.addEventListener('touchstart', function(e) {
     const touch = e.touches[0];
     const rect = contentContainer.getBoundingClientRect();
-    const touchX = touch.clientX - rect.left;
     const touchY = touch.clientY - rect.top;
     const containerHeight = rect.height;
-    const containerWidth = rect.width;
     const bottomThreshold = containerHeight * BOTTOM_TAP_THRESHOLD;
-    const leftSideThreshold = containerWidth * SIDE_TAP_THRESHOLD;
-    const rightSideThreshold = containerWidth * (1 - SIDE_TAP_THRESHOLD);
 
-    // Check if touch is in bottom, left, or right pagination zones
-    if (touchY >= bottomThreshold || touchX <= leftSideThreshold || touchX >= rightSideThreshold) {
+    touchStartY = touch.clientY;
+    touchStartTime = Date.now();
+    hasMoved = false;
+
+    // Check if touch is in bottom pagination zone
+    isInPaginationZone = (touchY >= bottomThreshold);
+  }, { passive: true });
+
+  contentContainer.addEventListener('touchmove', function(e) {
+    // Mark that user has moved - this means it's not a tap
+    hasMoved = true;
+    // Don't prevent default - allow normal browser scrolling behavior
+  }, { passive: true });
+
+  contentContainer.addEventListener('touchend', function(e) {
+    if (!isInPaginationZone || hasMoved) {
+      isInPaginationZone = false;
+      hasMoved = false;
+      return;
+    }
+
+    const touch = e.changedTouches[0];
+    const touchEndY = touch.clientY;
+    const touchDuration = Date.now() - touchStartTime;
+    const moveDistance = Math.abs(touchEndY - touchStartY);
+
+    // Only trigger pagination if it's a tap (short duration, minimal movement, no drag)
+    if (touchDuration < 300 && moveDistance < 10) {
       e.preventDefault();
+      const rect = contentContainer.getBoundingClientRect();
+      const containerHeight = rect.height;
       const scrollAmount = containerHeight * 0.9;
       contentContainer.scrollBy({
         top: scrollAmount,
         behavior: 'smooth'
       });
     }
+
+    isInPaginationZone = false;
+    hasMoved = false;
   }, { passive: false });
 }
 
@@ -447,10 +451,38 @@ function setupAutoHide() {
 
   const sidebarContent = document.querySelector('.chapters-sidebar-content');
   if (sidebarContent) {
+    let sidebarScrollTimer = null;
     sidebarContent.addEventListener('scroll', function() {
       isScrollingInSidebar = true;
-      setTimeout(() => {
+
+      // Add scrolling class to disable hover during scroll
+      sidebarContent.classList.add('scrolling');
+
+      // Clear previous timer
+      clearTimeout(sidebarScrollTimer);
+
+      // Remove scrolling class after scroll stops
+      sidebarScrollTimer = setTimeout(() => {
         isScrollingInSidebar = false;
+        sidebarContent.classList.remove('scrolling');
+      }, 150);
+    });
+  }
+
+  // Also add scrolling detection for chapter list
+  const chapterList = document.querySelector('.chapter-list');
+  if (chapterList) {
+    let chapterListScrollTimer = null;
+    chapterList.addEventListener('scroll', function() {
+      // Add scrolling class to disable hover during scroll
+      chapterList.classList.add('scrolling');
+
+      // Clear previous timer
+      clearTimeout(chapterListScrollTimer);
+
+      // Remove scrolling class after scroll stops
+      chapterListScrollTimer = setTimeout(() => {
+        chapterList.classList.remove('scrolling');
       }, 150);
     });
   }
@@ -527,12 +559,23 @@ async function loadFileContent() {
 
     fileContent = storyData.processedContent || storyData.content || '';
 
-    const contentForParsing = storyData.content || '';
-    if (contentForParsing) {
-      const originalFileContent = fileContent;
-      fileContent = contentForParsing;
-      parseChapters();
-      fileContent = originalFileContent;
+    // Use pre-parsed chapters from story data (with line-based anchors)
+    if (storyData.chapters && storyData.chapters.length > 0) {
+      chapters = storyData.chapters.map((ch, index) => ({
+        id: `chapter_${index}`,
+        title: ch.title,
+        anchorId: ch.anchorId,
+        lineNumber: ch.lineNumber
+      }));
+    } else {
+      // Fallback: parse chapters if not available in story data
+      const contentForParsing = storyData.content || '';
+      if (contentForParsing) {
+        const originalFileContent = fileContent;
+        fileContent = contentForParsing;
+        parseChapters();
+        fileContent = originalFileContent;
+      }
     }
 
     if (storyData.processedContent) {
@@ -636,7 +679,6 @@ function getCurrentChapterFromScrollPosition(scrollPosition) {
 function parseChapters() {
   chapters = [];
   const lines = fileContent.split('\n');
-  let chapterIndex = 0;
 
   const chapterPatterns = LocalFileProcessor.CHAPTER_PATTERNS;
 
@@ -646,15 +688,13 @@ function parseChapters() {
 
     for (const pattern of chapterPatterns) {
       if (pattern.test(line)) {
-        chapterIndex++;
-        const chapterNum = window.extractChapterNumber(line);
-        const anchorId = chapterNum !== null
-          ? `chapter-${chapterNum}`
-          : `chapter-${chapterIndex}`;
+        // Use line number as anchor ID
+        const anchorId = `line-${i}`;
         chapters.push({
           id: `chapter_${chapters.length}`,
           title: line,
-          anchorId: anchorId
+          anchorId: anchorId,
+          lineNumber: i
         });
         break;
       }
@@ -674,11 +714,12 @@ function updateChaptersList() {
 
   const chaptersToShow = filteredChapters.length > 0 ? filteredChapters : chapters;
 
-  chaptersToShow.forEach((chapter, index) => {
+  chaptersToShow.forEach((chapter, displayIndex) => {
     const li = document.createElement('li');
     li.className = 'chapter-item';
-    const chapterNum = window.extractChapterNumber(chapter.title);
-    li.dataset.index = chapterNum !== null ? chapterNum : index;
+    // Use the actual index in the chapters array for navigation
+    const actualIndex = chapter.originalIndex !== undefined ? chapter.originalIndex : chapters.indexOf(chapter);
+    li.dataset.index = actualIndex;
     li.textContent = truncateChapterTitle(chapter.title);
     li.title = chapter.title;
     li.addEventListener('click', function() {
@@ -760,13 +801,11 @@ function scrollToChapter(chapterIndexOrNum) {
 function getCurrentChapterFromPage(page) {
   if (!chapters || chapters.length === 0) return null;
 
-  for (let i = chapters.length - 1; i >= 0; i--) {
-    return {
-      id: chapters[i].id,
-      title: chapters[i].title
-    };
-  }
-  return chapters[0];
+  // Return the first chapter when initially loading the page
+  return {
+    id: chapters[0].id,
+    title: chapters[0].title
+  };
 }
 
 function highlightCurrentChapter() {
@@ -776,8 +815,10 @@ function highlightCurrentChapter() {
 
   if (!currentChapter) return;
 
-  const chapterNum = window.extractChapterNumber(currentChapter.title);
-  const dataIndex = chapterNum !== null ? chapterNum : chapters.findIndex(ch => ch.title === currentChapter.title);
+  // Find the actual index of the current chapter in the chapters array
+  const dataIndex = chapters.findIndex(ch => ch.title === currentChapter.title);
+
+  if (dataIndex === -1) return;
 
   const currentChapterElement = document.querySelector(
     `.chapter-item[data-index="${dataIndex}"]`
@@ -869,7 +910,8 @@ function getChapterScrollPosition(chapterIndex) {
 
   if (!contentContainer) return 0;
 
-  const anchorId = chapter.anchorId || `chapter-${chapterIndex + 1}`;
+  // Use the anchorId stored in chapter data (line-based)
+  const anchorId = chapter.anchorId;
   const anchorElement = document.getElementById(anchorId);
 
   if (anchorElement) {
