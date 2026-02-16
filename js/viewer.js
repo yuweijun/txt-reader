@@ -565,6 +565,97 @@ function togglePinSidebar() {
   localStorage.setItem('sidebarPinned', isSidebarPinned.toString());
 }
 
+/**
+ * Load a different story by ID and optionally scroll to a specific chapter
+ * Used when clicking cross-story search results
+ */
+async function loadStoryById(newStoryId, targetAnchorId, targetChapterTitle) {
+  try {
+    // Update current story ID
+    storyId = newStoryId;
+    
+    // Update URL hash without triggering hashchange reload
+    history.replaceState(null, '', `reader.html#view/${newStoryId}`);
+    
+    // Clear search input and filtered results
+    const searchInput = document.getElementById('chapterSearch');
+    if (searchInput) {
+      searchInput.value = '';
+    }
+    filteredChapters = [];
+    
+    // Load the new story content
+    const storyData = await db.getStoryById(newStoryId);
+    if (!storyData) {
+      throw new Error('Story not found');
+    }
+    
+    fileContent = storyData.processedContent || storyData.content || '';
+    
+    // Update chapters from new story
+    if (storyData.chapters && storyData.chapters.length > 0) {
+      chapters = storyData.chapters.map((ch, index) => ({
+        id: `chapter_${index}`,
+        title: ch.title,
+        anchorId: ch.anchorId,
+        lineNumber: ch.lineNumber
+      }));
+    } else {
+      chapters = [];
+    }
+    
+    // Render new content
+    const textContent = document.getElementById('textContent');
+    if (textContent) {
+      if (storyData.processedContent) {
+        textContent.innerHTML = fileContent;
+      } else {
+        textContent.textContent = fileContent;
+      }
+    }
+    
+    // Update chapter list in sidebar
+    updateChaptersList();
+    
+    // Find and set current chapter
+    if (targetChapterTitle) {
+      const matchingChapter = chapters.find(ch => ch.title === targetChapterTitle);
+      if (matchingChapter) {
+        currentChapter = {
+          id: matchingChapter.id,
+          title: matchingChapter.title
+        };
+      }
+    }
+    
+    // Scroll to the target chapter after content is rendered
+    setTimeout(() => {
+      if (targetAnchorId) {
+        const anchorElement = document.getElementById(targetAnchorId);
+        const contentContainer = document.querySelector('.content-container');
+        
+        if (anchorElement && contentContainer) {
+          const containerRect = contentContainer.getBoundingClientRect();
+          const anchorRect = anchorElement.getBoundingClientRect();
+          const scrollPosition = contentContainer.scrollTop +
+            (anchorRect.top - containerRect.top) - 20;
+          
+          contentContainer.scrollTo({
+            top: Math.max(0, scrollPosition),
+            behavior: 'smooth'
+          });
+        }
+      }
+      
+      highlightCurrentChapter();
+    }, 100);
+    
+  } catch (error) {
+    console.error('Error loading story:', error);
+    document.querySelector('.text-content').textContent = 'Error loading story: ' + error.message;
+  }
+}
+
 async function loadFileContent() {
   try {
     const storyData = await window.localFileProcessor.db.getStoryById(storyId);
@@ -735,14 +826,19 @@ function updateChaptersList() {
     
     // Check if this is a cross-story result
     if (chapter.isCurrentStory === false) {
-      // Cross-story chapter - navigate to different story
+      // Cross-story chapter - load and render the other story
       li.classList.add('cross-story-chapter');
       li.dataset.storyId = chapter.storyId;
+      li.dataset.anchorId = chapter.anchorId;
       li.innerHTML = `<span class="chapter-title-text">${truncateChapterTitle(chapter.title)}</span><span class="story-indicator">${truncateChapterTitle(chapter.storyTitle)}</span>`;
       li.title = `${chapter.title} (${chapter.storyTitle})`;
-      li.addEventListener('click', function() {
-        // Navigate to the other story
-        window.location.href = `reader.html#view/${chapter.storyId}`;
+      li.addEventListener('click', async function() {
+        const targetStoryId = chapter.storyId;
+        const targetAnchorId = chapter.anchorId;
+        const targetChapterTitle = chapter.title;
+        
+        // Load the new story without page navigation
+        await loadStoryById(targetStoryId, targetAnchorId, targetChapterTitle);
       });
     } else {
       // Current story chapter
