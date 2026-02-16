@@ -1151,6 +1151,94 @@ const SPEECH_RATE_STEP = 0.1;
 // Wake Lock to prevent screen sleep during TTS
 let wakeLock = null;
 
+// Screen dimming for energy saving during long TTS playback
+let speechStartTime = null;
+let screenDimTimer = null;
+let isScreenDimmed = false;
+const SCREEN_DIM_DELAY = 5 * 60 * 1000; // 5 minutes in milliseconds
+const SCREEN_DIM_OPACITY = 0.3;
+
+function createScreenDimOverlay() {
+  let overlay = document.getElementById('screenDimOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'screenDimOverlay';
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: black;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 9999;
+      transition: opacity 1s ease;
+    `;
+    document.body.appendChild(overlay);
+    
+    // Touch to brighten screen temporarily
+    overlay.addEventListener('touchstart', brightenScreenTemporarily);
+    overlay.addEventListener('click', brightenScreenTemporarily);
+  }
+  return overlay;
+}
+
+function dimScreen() {
+  if (!isMobileView() || !isSpeaking || isPaused) return;
+  
+  const overlay = createScreenDimOverlay();
+  overlay.style.pointerEvents = 'auto';
+  overlay.style.opacity = (1 - SCREEN_DIM_OPACITY).toString();
+  isScreenDimmed = true;
+}
+
+function brightenScreen() {
+  const overlay = document.getElementById('screenDimOverlay');
+  if (overlay) {
+    overlay.style.opacity = '0';
+    overlay.style.pointerEvents = 'none';
+  }
+  isScreenDimmed = false;
+}
+
+function brightenScreenTemporarily() {
+  if (!isSpeaking || isPaused) {
+    brightenScreen();
+    return;
+  }
+  
+  // Brighten for 10 seconds then dim again
+  brightenScreen();
+  
+  clearTimeout(screenDimTimer);
+  screenDimTimer = setTimeout(() => {
+    if (isSpeaking && !isPaused && isMobileView()) {
+      dimScreen();
+    }
+  }, 10000); // 10 seconds
+}
+
+function startScreenDimTimer() {
+  if (!isMobileView()) return;
+  
+  speechStartTime = Date.now();
+  clearTimeout(screenDimTimer);
+  
+  screenDimTimer = setTimeout(() => {
+    if (isSpeaking && !isPaused) {
+      dimScreen();
+    }
+  }, SCREEN_DIM_DELAY);
+}
+
+function stopScreenDimTimer() {
+  clearTimeout(screenDimTimer);
+  screenDimTimer = null;
+  speechStartTime = null;
+  brightenScreen();
+}
+
 async function requestWakeLock() {
   if ('wakeLock' in navigator) {
     try {
@@ -1336,6 +1424,9 @@ async function startSpeech() {
   // Request wake lock to prevent screen sleep
   await requestWakeLock();
 
+  // Start screen dim timer for mobile energy saving
+  startScreenDimTimer();
+
   speakNext();
 }
 
@@ -1347,6 +1438,9 @@ async function pauseSpeech() {
 
     // Release wake lock when paused to save battery
     await releaseWakeLock();
+
+    // Stop dim timer and brighten screen when paused
+    stopScreenDimTimer();
   }
 }
 
@@ -1357,6 +1451,9 @@ async function resumeSpeech() {
 
     // Re-acquire wake lock when resuming
     await requestWakeLock();
+
+    // Restart screen dim timer when resuming
+    startScreenDimTimer();
 
     speakNext();
   }
@@ -1370,6 +1467,9 @@ async function stopSpeech() {
   isPaused = false;
   currentSpeechIndex = 0;
   updateSpeechButton();
+
+  // Stop dim timer and brighten screen when stopped
+  stopScreenDimTimer();
 
   // Release wake lock when speech stops
   await releaseWakeLock();
