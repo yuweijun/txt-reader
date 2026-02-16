@@ -990,6 +990,41 @@ const MIN_SPEECH_RATE = 0.5;
 const MAX_SPEECH_RATE = 2.0;
 const SPEECH_RATE_STEP = 0.1;
 
+// Wake Lock to prevent screen sleep during TTS
+let wakeLock = null;
+
+async function requestWakeLock() {
+  if ('wakeLock' in navigator) {
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => {
+        wakeLock = null;
+      });
+    } catch (err) {
+      // Wake lock request failed (e.g., low battery, tab not visible)
+      console.warn('Wake lock request failed:', err.message);
+    }
+  }
+}
+
+async function releaseWakeLock() {
+  if (wakeLock !== null) {
+    try {
+      await wakeLock.release();
+      wakeLock = null;
+    } catch (err) {
+      console.warn('Wake lock release failed:', err.message);
+    }
+  }
+}
+
+// Re-acquire wake lock when page becomes visible again
+document.addEventListener('visibilitychange', async () => {
+  if (document.visibilityState === 'visible' && isSpeaking && !isPaused) {
+    await requestWakeLock();
+  }
+});
+
 function initSpeechSynthesis() {
   if (!speechSynthesis) {
     console.warn('Speech synthesis not supported');
@@ -1127,7 +1162,7 @@ function toggleSpeech() {
   }
 }
 
-function startSpeech() {
+async function startSpeech() {
   speechTextQueue = getTextForSpeech();
   if (speechTextQueue.length === 0) return;
 
@@ -1139,26 +1174,37 @@ function startSpeech() {
   isSpeaking = true;
   isPaused = false;
   updateSpeechButton();
+
+  // Request wake lock to prevent screen sleep
+  await requestWakeLock();
+
   speakNext();
 }
 
-function pauseSpeech() {
+async function pauseSpeech() {
   if (speechSynthesis) {
     speechSynthesis.cancel();
     isPaused = true;
     updateSpeechButton();
+
+    // Release wake lock when paused to save battery
+    await releaseWakeLock();
   }
 }
 
-function resumeSpeech() {
+async function resumeSpeech() {
   if (speechSynthesis) {
     isPaused = false;
     updateSpeechButton();
+
+    // Re-acquire wake lock when resuming
+    await requestWakeLock();
+
     speakNext();
   }
 }
 
-function stopSpeech() {
+async function stopSpeech() {
   if (speechSynthesis) {
     speechSynthesis.cancel();
   }
@@ -1166,6 +1212,9 @@ function stopSpeech() {
   isPaused = false;
   currentSpeechIndex = 0;
   updateSpeechButton();
+
+  // Release wake lock when speech stops
+  await releaseWakeLock();
 }
 
 function speakNext() {
