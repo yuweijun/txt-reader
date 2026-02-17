@@ -1155,6 +1155,7 @@ let wakeLock = null;
 let speechStartTime = null;
 let screenDimTimer = null;
 let isScreenDimmed = false;
+let userActivityTimer = null;
 const SCREEN_DIM_DELAY = 5 * 60 * 1000; // 5 minutes in milliseconds
 const SCREEN_DIM_OPACITY = 0.3;
 
@@ -1208,15 +1209,45 @@ function brightenScreenTemporarily() {
     return;
   }
   
-  // Brighten for 10 seconds then dim again
+  // Brighten screen and reset the 5-minute inactivity timer
   brightenScreen();
+  resetUserActivityTimer();
+}
+
+function resetUserActivityTimer() {
+  // Clear any existing timer
+  clearTimeout(userActivityTimer);
   
-  clearTimeout(screenDimTimer);
-  screenDimTimer = setTimeout(() => {
+  // Start new 5-minute timer to dim screen again
+  userActivityTimer = setTimeout(() => {
     if (isSpeaking && !isPaused && isMobileView()) {
       dimScreen();
     }
-  }, 10000); // 10 seconds
+  }, SCREEN_DIM_DELAY);
+}
+
+let userActivityListenersSetup = false;
+
+function setupUserActivityListeners() {
+  // Only setup once to avoid duplicate listeners
+  if (userActivityListenersSetup) return;
+  userActivityListenersSetup = true;
+  
+  const events = ['touchstart', 'touchmove', 'click', 'scroll', 'keydown', 'mousemove'];
+  
+  events.forEach(eventType => {
+    document.addEventListener(eventType, handleUserActivity, { passive: true });
+  });
+}
+
+function handleUserActivity() {
+  // Only handle if speech is playing and screen is dimmed
+  if (!isSpeaking || isPaused) return;
+  
+  if (isScreenDimmed) {
+    // Exit dim status immediately on any user action
+    brightenScreenTemporarily();
+  }
 }
 
 function startScreenDimTimer() {
@@ -1224,6 +1255,10 @@ function startScreenDimTimer() {
   
   speechStartTime = Date.now();
   clearTimeout(screenDimTimer);
+  clearTimeout(userActivityTimer);
+  
+  // Setup user activity listeners for exiting dim mode
+  setupUserActivityListeners();
   
   screenDimTimer = setTimeout(() => {
     if (isSpeaking && !isPaused) {
@@ -1234,7 +1269,9 @@ function startScreenDimTimer() {
 
 function stopScreenDimTimer() {
   clearTimeout(screenDimTimer);
+  clearTimeout(userActivityTimer);
   screenDimTimer = null;
+  userActivityTimer = null;
   speechStartTime = null;
   brightenScreen();
 }
