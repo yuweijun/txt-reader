@@ -141,33 +141,13 @@ async function initializeViewer() {
   // Setup double-click and tap to toggle sidebar on content container
   const contentContainer = document.querySelector('.content-container');
   if (contentContainer) {
-    // Helper function to check if point is in center area
-    function isInCenterArea(rect, x, y) {
-      const centerX = rect.width / 2;
-      const centerY = rect.height / 2;
-      const centerAreaWidth = rect.width * 0.5;
-      const centerAreaHeight = rect.height * 0.5;
-      const centerLeft = centerX - centerAreaWidth / 2;
-      const centerRight = centerX + centerAreaWidth / 2;
-      const centerTop = centerY - centerAreaHeight / 2;
-      const centerBottom = centerY + centerAreaHeight / 2;
-
-      return x >= centerLeft && x <= centerRight &&
-             y >= centerTop && y <= centerBottom;
-    }
-
-    // Double-click for desktop
+    // Double-click for desktop to toggle sidebar
     contentContainer.addEventListener('dblclick', function(e) {
-      const rect = contentContainer.getBoundingClientRect();
-      const clickX = e.clientX - rect.left;
-      const clickY = e.clientY - rect.top;
-
-      if (isInCenterArea(rect, clickX, clickY)) {
-        toggleSidebar();
-      }
+      if (isSidebarPinned) return;
+      toggleSidebar();
     });
 
-    // Double-tap for touch devices
+    // Double-tap for touch devices to toggle sidebar
     let lastTapTime = 0;
     let lastTapX = 0;
     let lastTapY = 0;
@@ -175,14 +155,11 @@ async function initializeViewer() {
     const doubleTapDistance = 30;
 
     contentContainer.addEventListener('touchstart', function(e) {
-      const rect = contentContainer.getBoundingClientRect();
+      if (isSidebarPinned) return;
+      
       const touch = e.touches[0];
-      const tapX = touch.clientX - rect.left;
-      const tapY = touch.clientY - rect.top;
-
-      if (!isInCenterArea(rect, tapX, tapY)) {
-        return;
-      }
+      const tapX = touch.clientX;
+      const tapY = touch.clientY;
 
       const currentTime = new Date().getTime();
       const timeDiff = currentTime - lastTapTime;
@@ -200,33 +177,6 @@ async function initializeViewer() {
         lastTapY = tapY;
       }
     }, { passive: false });
-
-    // Tap outside sidebar to close (for mobile)
-    let sidebarToggleTime = 0;
-    const TOGGLE_COOLDOWN = 500;
-
-    // Track when sidebar is toggled
-    const originalToggleSidebar = toggleSidebar;
-    window.toggleSidebar = function() {
-      sidebarToggleTime = new Date().getTime();
-      return originalToggleSidebar.apply(this, arguments);
-    };
-
-    document.addEventListener('touchend', function(e) {
-      if (!isMobileView()) return;
-
-      const sidebar = document.getElementById('chaptersSidebar');
-      if (!sidebar || !sidebar.classList.contains('visible')) return;
-
-      const timeSinceToggle = new Date().getTime() - sidebarToggleTime;
-      if (timeSinceToggle < TOGGLE_COOLDOWN) {
-        return;
-      }
-
-      if (contentContainer.contains(e.target)) {
-        hideSidebar();
-      }
-    }, { passive: true });
   }
 
   // Load saved pin state
@@ -444,14 +394,6 @@ function setupAutoHide() {
   if (!sidebar || !contentContainer) return;
 
   sidebar.classList.add('auto-hide');
-
-  if (textContent) {
-    textContent.addEventListener('click', function(e) {
-      if (!isSidebarPinned && !isSidebarHidden) {
-        hideSidebar();
-      }
-    });
-  }
 
   let scrollTimer = null;
   contentContainer.addEventListener('scroll', function() {
