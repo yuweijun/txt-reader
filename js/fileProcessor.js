@@ -123,6 +123,48 @@ class LocalFileProcessor {
   }
 
   /**
+   * Create encoding error entry when file is not UTF-8 encoded
+   * @private
+   */
+  async _createEncodingErrorEntry(file) {
+    const errorMessage = "上传的文本文件编码必须为UTF-8格式";
+    const bookId = this.generateStoryId();
+    const bookName = LocalFileProcessor.extractBookNameFromFileName(file.name);
+
+    const bookData = {
+      id: bookId,
+      bookName: bookName + " (编码错误)",
+      originalFileName: file.name,
+      uploadTime: new Date().toISOString()
+    };
+
+    await this.db.addBook(bookData);
+
+    const storyId = this.generateStoryId();
+    const generatedFileName = `${bookName}_error.txt`;
+    const processingResult = this.processContentWithChapters(errorMessage);
+
+    const storyData = {
+      id: storyId,
+      bookId: bookId,
+      fileName: generatedFileName,
+      originalFileName: file.name,
+      fileSize: new Blob([errorMessage]).size,
+      content: errorMessage,
+      processedContent: processingResult.htmlContent,
+      chapters: processingResult.chapters,
+      extractedTitle: bookName + " (编码错误)",
+      isSplitFile: false,
+      splitParentFile: null,
+      splitIndex: null,
+      totalChunks: null
+    };
+
+    await this.db.addStory(storyData);
+    return { bookId, storyIds: [storyId] };
+  }
+
+  /**
    * Process file - creates a book and saves stories
    * Splits file by every 5000 lines
    */
@@ -130,42 +172,7 @@ class LocalFileProcessor {
     const fileContent = await this.readFileAsText(file);
 
     if (!LocalFileProcessor.isUtf8Encoded(fileContent)) {
-      const errorMessage = "上传的文本文件编码必须为UTF-8格式";
-
-      const bookId = this.generateStoryId();
-      const bookName = LocalFileProcessor.extractBookNameFromFileName(file.name);
-
-      const bookData = {
-        id: bookId,
-        bookName: bookName + " (编码错误)",
-        originalFileName: file.name,
-        uploadTime: new Date().toISOString()
-      };
-
-      await this.db.addBook(bookData);
-
-      const storyId = this.generateStoryId();
-      const generatedFileName = `${bookName}_error.txt`;
-      const processingResult = this.processContentWithChapters(errorMessage);
-
-      const storyData = {
-        id: storyId,
-        bookId: bookId,
-        fileName: generatedFileName,
-        originalFileName: file.name,
-        fileSize: new Blob([errorMessage]).size,
-        content: errorMessage,
-        processedContent: processingResult.htmlContent,
-        chapters: processingResult.chapters,
-        extractedTitle: bookName + " (编码错误)",
-        isSplitFile: false,
-        splitParentFile: null,
-        splitIndex: null,
-        totalChunks: null
-      };
-
-      await this.db.addStory(storyData);
-      return { bookId, storyIds: [storyId] };
+      return await this._createEncodingErrorEntry(file);
     }
 
     const bookId = this.generateStoryId();
@@ -257,44 +264,9 @@ class LocalFileProcessor {
   async processAndSplitFile(file, forceSplit = false) {
     const fileContent = await this.readFileAsText(file);
 
-    // fileContent should have been UTF-8 encoding, check for book encoding again
+    // Check for UTF-8 encoding
     if (!LocalFileProcessor.isUtf8Encoded(fileContent)) {
-      const errorMessage = "上传的文本文件编码必须为UTF-8格式";
-
-      const bookId = this.generateStoryId();
-      const bookName = LocalFileProcessor.extractBookNameFromFileName(file.name);
-
-      const bookData = {
-        id: bookId,
-        bookName: bookName + " (编码错误)",
-        originalFileName: file.name,
-        uploadTime: new Date().toISOString()
-      };
-
-      await this.db.addBook(bookData);
-
-      const storyId = this.generateStoryId();
-      const generatedFileName = `${bookName}_error.txt`;
-      const processingResult = this.processContentWithChapters(errorMessage);
-
-      const storyData = {
-        id: storyId,
-        bookId: bookId,
-        fileName: generatedFileName,
-        originalFileName: file.name,
-        fileSize: new Blob([errorMessage]).size,
-        content: errorMessage,
-        processedContent: processingResult.htmlContent,
-        chapters: processingResult.chapters,
-        extractedTitle: bookName + " (编码错误)",
-        isSplitFile: false,
-        splitParentFile: null,
-        splitIndex: null,
-        totalChunks: null
-      };
-
-      await this.db.addStory(storyData);
-      return { bookId, storyIds: [storyId] };
+      return await this._createEncodingErrorEntry(file);
     }
 
     const lines = fileContent.split('\n');

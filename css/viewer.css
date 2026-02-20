@@ -29,6 +29,8 @@
   flex-direction: column;
   overflow: hidden;
   transition: background-color 0.3s ease, transform 0.3s ease;
+  /* Prevent double-tap zoom in sidebar */
+  touch-action: manipulation;
 }
 
 .chapters-sidebar-header {
@@ -150,6 +152,8 @@
   user-select: none;
   /* Remove tap highlight on mobile */
   -webkit-tap-highlight-color: transparent;
+  /* Prevent double-tap zoom */
+  touch-action: manipulation;
 }
 
 .chapter-item.active {
@@ -238,6 +242,11 @@ body {
   overscroll-behavior: none;
   background-color: var(--bg-primary);
   color: var(--text-primary);
+}
+
+/* Disable double-tap zoom and pinch zoom globally */
+html {
+  touch-action: pan-x pan-y;
 }
 
 /* Theme Application - Base styles */

@@ -8,12 +8,12 @@ if (window.initializeIOSViewport) {
   window.initializeIOSViewport();
 }
 
-// Auto-hide functionality variables
+// Database and processor instances
 let db = null;
 let localFileProcessor = null;
 let storyId = null;
 
-// Auto-hide functionality variables
+// Sidebar state variables
 let isSidebarHidden = false;
 let isSidebarPinned = false;
 let lastScrollTop = 0;
