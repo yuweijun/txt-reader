@@ -245,8 +245,15 @@ body {
 }
 
 /* Disable double-tap zoom and pinch zoom globally */
-html {
+html, body {
   touch-action: pan-x pan-y;
+  -ms-touch-action: pan-x pan-y;
+}
+
+/* Allow text selection in reader content */
+.text-content {
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 /* Theme Application - Base styles */
