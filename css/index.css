@@ -26,21 +26,7 @@ body {
   overscroll-behavior: none;
 }
 
-/* Disable double-tap zoom and pinch zoom globally */
-html, body {
-  touch-action: pan-x pan-y;
-  -ms-touch-action: pan-x pan-y;
-  /* Prevent text selection during gestures */
-  -webkit-user-select: none;
-  user-select: none;
-}
 
-/* Allow text selection in content areas */
-.story-title,
-.book-header h5 {
-  -webkit-user-select: text;
-  user-select: text;
-}
 
 .container {
   padding: 0;
