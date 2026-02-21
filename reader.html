@@ -15,7 +15,14 @@
     <link rel="stylesheet" href="css/modal.css">
     <link rel="stylesheet" href="css/viewer.css">
 </head>
-<body class="theme-maize-yello">
+<body>
+    <script>
+        // Apply saved theme immediately to prevent flash of default theme
+        (function() {
+            var savedTheme = localStorage.getItem('preferredViewerTheme') || 'maize-yello';
+            document.body.className = 'theme-' + savedTheme;
+        })();
+    </script>
     <div class="content-container scrollbar-themed">
         <div class="text-content" id="textContent"></div>
     </div>
