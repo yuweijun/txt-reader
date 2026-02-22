@@ -1437,6 +1437,7 @@ function decreaseSpeechSpeed() {
   const newRate = Math.max(MIN_SPEECH_RATE, speechRate - SPEECH_RATE_STEP);
   if (newRate !== speechRate) {
     speechRate = Math.round(newRate * 10) / 10;
+    showSpeechRate();
     pauseSpeechForSpeedChange();
   }
 }
@@ -1445,8 +1446,24 @@ function increaseSpeechSpeed() {
   const newRate = Math.min(MAX_SPEECH_RATE, speechRate + SPEECH_RATE_STEP);
   if (newRate !== speechRate) {
     speechRate = Math.round(newRate * 10) / 10;
+    showSpeechRate();
     pauseSpeechForSpeedChange();
   }
+}
+
+let speechRateDisplayTimer = null;
+
+function showSpeechRate() {
+  const display = document.getElementById('speechRateDisplay');
+  if (!display) return;
+
+  display.textContent = speechRate.toFixed(1) + 'x';
+  display.classList.add('visible');
+
+  clearTimeout(speechRateDisplayTimer);
+  speechRateDisplayTimer = setTimeout(() => {
+    display.classList.remove('visible');
+  }, 2000);
 }
 
 function pauseSpeechForSpeedChange() {

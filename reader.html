@@ -58,17 +58,22 @@
                         </ul>
                     </div>
                 </div>
-                <div class="d-flex">
+                <div class="d-flex align-items-center">
                     <button class="btn btn-sm btn-outline-light me-2" id="speechBtn" title="Play/Pause speech">
                         <i class="fas fa-play" id="speechIcon"></i>
                     </button>
-                    <button class="btn btn-sm btn-outline-light me-2" id="speechSpeedDownBtn" title="Decrease speed">
-                        <i class="fas fa-minus"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-light me-2" id="speechSpeedUpBtn" title="Increase speed">
-                        <i class="fas fa-plus"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-light" id="togglePinBtn" title="Pin/Unpin sidebar">
+                    <div class="speech-speed-control">
+                        <span class="speech-rate-display" id="speechRateDisplay"></span>
+                        <div class="speed-buttons">
+                            <button class="btn btn-sm btn-outline-light" id="speechSpeedDownBtn" title="Decrease speed">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-light" id="speechSpeedUpBtn" title="Increase speed">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button class="btn btn-sm btn-outline-light ms-2" id="togglePinBtn" title="Pin/Unpin sidebar">
                         <i class="fas fa-thumbtack" id="pinIcon"></i>
                     </button>
                 </div>
