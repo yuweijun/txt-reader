@@ -313,7 +313,7 @@ body {
 
 /* Content container */
 .content-container {
-  max-width: 1000px;
+  max-width: 780px;
   margin: 0 auto 0 390px;
   padding: 20px;
   padding-top: calc(20px + var(--safe-area-top));
