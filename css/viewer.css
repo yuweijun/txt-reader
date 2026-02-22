@@ -449,12 +449,11 @@ body {
   }
 }
 
-/* Speech speed control */
-.speech-speed-control {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+/* Speech button container with rate display */
+.speech-btn-container {
   position: relative;
+  display: flex;
+  align-items: center;
 }
 
 .speech-rate-display {
@@ -464,6 +463,8 @@ body {
   transition: opacity 0.3s ease;
   position: absolute;
   top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
   white-space: nowrap;
   background: transparent;
   padding: 2px 6px;
@@ -473,9 +474,4 @@ body {
 
 .speech-rate-display.visible {
   opacity: 1;
-}
-
-.speed-buttons {
-  display: flex;
-  gap: 4px;
 }

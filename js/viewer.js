@@ -156,7 +156,7 @@ async function initializeViewer() {
 
     contentContainer.addEventListener('touchstart', function(e) {
       if (isSidebarPinned) return;
-      
+
       const touch = e.touches[0];
       const tapX = touch.clientX;
       const tapY = touch.clientY;
@@ -515,25 +515,25 @@ async function loadStoryById(newStoryId, targetAnchorId, targetChapterTitle) {
   try {
     // Update current story ID
     storyId = newStoryId;
-    
+
     // Update URL hash without triggering hashchange reload
     history.replaceState(null, '', `reader.html#view/${newStoryId}`);
-    
+
     // Clear search input and filtered results
     const searchInput = document.getElementById('chapterSearch');
     if (searchInput) {
       searchInput.value = '';
     }
     filteredChapters = [];
-    
+
     // Load the new story content
     const storyData = await db.getStoryById(newStoryId);
     if (!storyData) {
       throw new Error('Story not found');
     }
-    
+
     fileContent = storyData.processedContent || storyData.content || '';
-    
+
     // Update chapters from new story
     if (storyData.chapters && storyData.chapters.length > 0) {
       chapters = storyData.chapters.map((ch, index) => ({
@@ -545,7 +545,7 @@ async function loadStoryById(newStoryId, targetAnchorId, targetChapterTitle) {
     } else {
       chapters = [];
     }
-    
+
     // Render new content
     const textContent = document.getElementById('textContent');
     if (textContent) {
@@ -555,10 +555,10 @@ async function loadStoryById(newStoryId, targetAnchorId, targetChapterTitle) {
         textContent.textContent = fileContent;
       }
     }
-    
+
     // Update chapter list in sidebar
     updateChaptersList();
-    
+
     // Find and set current chapter
     if (targetChapterTitle) {
       const matchingChapter = chapters.find(ch => ch.title === targetChapterTitle);
@@ -569,29 +569,29 @@ async function loadStoryById(newStoryId, targetAnchorId, targetChapterTitle) {
         };
       }
     }
-    
+
     // Scroll to the target chapter after content is rendered
     setTimeout(() => {
       if (targetAnchorId) {
         const anchorElement = document.getElementById(targetAnchorId);
         const contentContainer = document.querySelector('.content-container');
-        
+
         if (anchorElement && contentContainer) {
           const containerRect = contentContainer.getBoundingClientRect();
           const anchorRect = anchorElement.getBoundingClientRect();
           const scrollPosition = contentContainer.scrollTop +
             (anchorRect.top - containerRect.top) - 20;
-          
+
           contentContainer.scrollTo({
             top: Math.max(0, scrollPosition),
             behavior: 'smooth'
           });
         }
       }
-      
+
       highlightCurrentChapter();
     }, 100);
-    
+
   } catch (error) {
     console.error('Error loading story:', error);
     document.querySelector('.text-content').textContent = 'Error loading story: ' + error.message;
@@ -765,7 +765,7 @@ function updateChaptersList() {
   chaptersToShow.forEach((chapter, displayIndex) => {
     const li = document.createElement('li');
     li.className = 'chapter-item';
-    
+
     // Check if this is a cross-story result
     if (chapter.isCurrentStory === false) {
       // Cross-story chapter - load and render the other story
@@ -778,7 +778,7 @@ function updateChaptersList() {
         const targetStoryId = chapter.storyId;
         const targetAnchorId = chapter.anchorId;
         const targetChapterTitle = chapter.title;
-        
+
         // Load the new story without page navigation
         await loadStoryById(targetStoryId, targetAnchorId, targetChapterTitle);
       });
@@ -793,7 +793,7 @@ function updateChaptersList() {
         scrollToChapter(chapterIndex);
       });
     }
-    
+
     chapterList.appendChild(li);
   });
 }
@@ -806,7 +806,7 @@ function filterChapters(searchTerm) {
   }
 
   const term = searchTerm.toLowerCase().trim();
-  
+
   // First, search current story's chapters
   const currentStoryResults = chapters.filter((chapter) => {
     return chapter.title.toLowerCase().includes(term);
@@ -825,7 +825,7 @@ function filterChapters(searchTerm) {
     for (const story of allBookStories) {
       // Skip current story (already searched)
       if (story.id === storyId) continue;
-      
+
       if (story.chapters && story.chapters.length > 0) {
         const matchedChapters = story.chapters.filter((ch) => {
           return ch.title.toLowerCase().includes(term);
@@ -1119,7 +1119,7 @@ function createScreenDimOverlay() {
       transition: opacity 1s ease;
     `;
     document.body.appendChild(overlay);
-    
+
     // Touch to brighten screen temporarily
     overlay.addEventListener('touchstart', brightenScreenTemporarily);
     overlay.addEventListener('click', brightenScreenTemporarily);
@@ -1129,7 +1129,7 @@ function createScreenDimOverlay() {
 
 function dimScreen() {
   if (!isMobileView() || !isSpeaking || isPaused) return;
-  
+
   const overlay = createScreenDimOverlay();
   overlay.style.pointerEvents = 'auto';
   overlay.style.opacity = (1 - SCREEN_DIM_OPACITY).toString();
@@ -1150,7 +1150,7 @@ function brightenScreenTemporarily() {
     brightenScreen();
     return;
   }
-  
+
   // Brighten screen and reset the 5-minute inactivity timer
   brightenScreen();
   resetUserActivityTimer();
@@ -1159,7 +1159,7 @@ function brightenScreenTemporarily() {
 function resetUserActivityTimer() {
   // Clear any existing timer
   clearTimeout(userActivityTimer);
-  
+
   // Start new 5-minute timer to dim screen again
   userActivityTimer = setTimeout(() => {
     if (isSpeaking && !isPaused && isMobileView()) {
@@ -1174,9 +1174,9 @@ function setupUserActivityListeners() {
   // Only setup once to avoid duplicate listeners
   if (userActivityListenersSetup) return;
   userActivityListenersSetup = true;
-  
+
   const events = ['touchstart', 'touchmove', 'click', 'scroll', 'keydown', 'mousemove'];
-  
+
   events.forEach(eventType => {
     document.addEventListener(eventType, handleUserActivity, { passive: true });
   });
@@ -1185,7 +1185,7 @@ function setupUserActivityListeners() {
 function handleUserActivity() {
   // Only handle if speech is playing and screen is dimmed
   if (!isSpeaking || isPaused) return;
-  
+
   if (isScreenDimmed) {
     // Exit dim status immediately on any user action
     brightenScreenTemporarily();
@@ -1194,14 +1194,14 @@ function handleUserActivity() {
 
 function startScreenDimTimer() {
   if (!isMobileView()) return;
-  
+
   speechStartTime = Date.now();
   clearTimeout(screenDimTimer);
   clearTimeout(userActivityTimer);
-  
+
   // Setup user activity listeners for exiting dim mode
   setupUserActivityListeners();
-  
+
   screenDimTimer = setTimeout(() => {
     if (isSpeaking && !isPaused) {
       dimScreen();
@@ -1224,7 +1224,7 @@ let silentAudioContext = null;
 
 function createSilentAudio() {
   if (silentAudio) return silentAudio;
-  
+
   // Create a silent audio element
   silentAudio = document.createElement('audio');
   silentAudio.id = 'silentBackgroundAudio';
@@ -1232,7 +1232,7 @@ function createSilentAudio() {
   silentAudio.playsinline = true;
   silentAudio.setAttribute('playsinline', '');
   silentAudio.setAttribute('webkit-playsinline', '');
-  
+
   // Create silent audio using Web Audio API and convert to blob
   try {
     silentAudioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -1240,10 +1240,10 @@ function createSilentAudio() {
     const duration = 1; // 1 second of silence
     const numChannels = 1;
     const numFrames = sampleRate * duration;
-    
+
     // Create audio buffer with silence
     const audioBuffer = silentAudioContext.createBuffer(numChannels, numFrames, sampleRate);
-    
+
     // Convert to WAV blob
     const wavBlob = audioBufferToWav(audioBuffer);
     silentAudio.src = URL.createObjectURL(wavBlob);
@@ -1252,7 +1252,7 @@ function createSilentAudio() {
     // This is a tiny valid MP3 file (silence)
     silentAudio.src = 'data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA/+M4wAAAAAAAAAAAAEluZm8AAAAPAAAAAwAAAbAAqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAAbD/k2jlAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/+M4wAADCAHkCAAAAAANIAAAAAExBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/jOMQoAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/jOMQoAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVQ==';
   }
-  
+
   document.body.appendChild(silentAudio);
   return silentAudio;
 }
@@ -1263,16 +1263,16 @@ function audioBufferToWav(buffer) {
   const sampleRate = buffer.sampleRate;
   const format = 1; // PCM
   const bitDepth = 16;
-  
+
   const bytesPerSample = bitDepth / 8;
   const blockAlign = numChannels * bytesPerSample;
-  
+
   const dataLength = buffer.length * blockAlign;
   const bufferLength = 44 + dataLength;
-  
+
   const arrayBuffer = new ArrayBuffer(bufferLength);
   const view = new DataView(arrayBuffer);
-  
+
   // WAV header
   writeString(view, 0, 'RIFF');
   view.setUint32(4, 36 + dataLength, true);
@@ -1287,7 +1287,7 @@ function audioBufferToWav(buffer) {
   view.setUint16(34, bitDepth, true);
   writeString(view, 36, 'data');
   view.setUint32(40, dataLength, true);
-  
+
   // Write silence (zeros)
   const offset = 44;
   for (let i = 0; i < buffer.length; i++) {
@@ -1296,7 +1296,7 @@ function audioBufferToWav(buffer) {
       view.setInt16(offset + (i * blockAlign) + (channel * bytesPerSample), sample, true);
     }
   }
-  
+
   return new Blob([arrayBuffer], { type: 'audio/wav' });
 }
 
@@ -1457,13 +1457,13 @@ function showSpeechRate() {
   const display = document.getElementById('speechRateDisplay');
   if (!display) return;
 
-  display.textContent = speechRate.toFixed(1) + 'x';
+  display.textContent = speechRate.toFixed(1);
   display.classList.add('visible');
 
   clearTimeout(speechRateDisplayTimer);
   speechRateDisplayTimer = setTimeout(() => {
     display.classList.remove('visible');
-  }, 2000);
+  }, 300);
 }
 
 function pauseSpeechForSpeedChange() {
