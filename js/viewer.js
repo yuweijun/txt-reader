@@ -1437,7 +1437,7 @@ function decreaseSpeechSpeed() {
   const newRate = Math.max(MIN_SPEECH_RATE, speechRate - SPEECH_RATE_STEP);
   if (newRate !== speechRate) {
     speechRate = Math.round(newRate * 10) / 10;
-    applySpeechSpeedChange();
+    pauseSpeechForSpeedChange();
   }
 }
 
@@ -1445,30 +1445,13 @@ function increaseSpeechSpeed() {
   const newRate = Math.min(MAX_SPEECH_RATE, speechRate + SPEECH_RATE_STEP);
   if (newRate !== speechRate) {
     speechRate = Math.round(newRate * 10) / 10;
-    applySpeechSpeedChange();
+    pauseSpeechForSpeedChange();
   }
 }
 
-function applySpeechSpeedChange() {
-  if (isSpeaking) {
-    const wasPaused = isPaused;
-    const currentIndex = currentSpeechIndex;
-
-    speechSynthesis.cancel();
-
-    isPaused = false;
-    updateSpeechButton();
-
-    currentSpeechIndex = currentIndex;
-    speakNext();
-
-    if (wasPaused) {
-      setTimeout(() => {
-        speechSynthesis.pause();
-        isPaused = true;
-        updateSpeechButton();
-      }, 100);
-    }
+function pauseSpeechForSpeedChange() {
+  if (isSpeaking && !isPaused) {
+    pauseSpeech();
   }
 }
 
