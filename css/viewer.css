@@ -462,7 +462,7 @@ body {
   opacity: 0;
   transition: opacity 0.3s ease;
   position: absolute;
-  bottom: -20px;
+  bottom: -4px;
   left: 50%;
   transform: translateX(-50%);
   white-space: nowrap;
