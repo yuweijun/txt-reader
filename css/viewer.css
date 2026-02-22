@@ -475,3 +475,15 @@ body {
 .speech-rate-display.visible {
   opacity: 1;
 }
+
+/* Background playing state for Dynamic Island */
+#speechBtn.background-playing {
+  background-color: #4A90D9;
+  border-color: #4A90D9;
+  color: #ffffff;
+}
+
+#speechBtn.background-playing:hover {
+  background-color: #3a7bc8;
+  border-color: #3a7bc8;
+}

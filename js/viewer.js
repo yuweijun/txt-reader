@@ -1352,11 +1352,30 @@ async function releaseWakeLock() {
 }
 
 // Re-acquire wake lock when page becomes visible again
+// Also update speech button style for Dynamic Island playback
 document.addEventListener('visibilitychange', async () => {
-  if (document.visibilityState === 'visible' && isSpeaking && !isPaused) {
-    await requestWakeLock();
+  if (document.visibilityState === 'visible') {
+    if (isSpeaking && !isPaused) {
+      await requestWakeLock();
+    }
+    updateSpeechButtonBackground(false);
+  } else if (document.visibilityState === 'hidden') {
+    if (isSpeaking && !isPaused) {
+      updateSpeechButtonBackground(true);
+    }
   }
 });
+
+function updateSpeechButtonBackground(isBackground) {
+  const speechBtn = document.getElementById('speechBtn');
+  if (!speechBtn) return;
+
+  if (isBackground && isSpeaking && !isPaused) {
+    speechBtn.classList.add('background-playing');
+  } else {
+    speechBtn.classList.remove('background-playing');
+  }
+}
 
 function initSpeechSynthesis() {
   if (!speechSynthesis) {
