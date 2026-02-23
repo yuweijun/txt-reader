@@ -1591,8 +1591,8 @@ function setupMediaSession() {
     const title = currentChapter ? currentChapter.title : 'Text Reader';
     const storyTitle = document.title || 'Reading';
 
-    // Create blue book icon as data URL for Dynamic Island
-    const blueIconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect x="10" y="10" width="50" height="80" rx="5" fill="#4A90D9"/><rect x="20" y="15" width="35" height="70" fill="#f5f5f5"/><path d="M55 15 Q75 50 55 85" fill="#d0d0d0" stroke="#b0b0b0" stroke-width="1"/><rect x="60" y="10" width="30" height="80" rx="5" fill="#4A90D9"/></svg>';
+    // Create blue book icon (iPhone Books style) as data URL for Dynamic Island
+    const blueIconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><linearGradient id="bookGradient" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#5BA3E0;stop-opacity:1"/><stop offset="100%" style="stop-color:#4A90D9;stop-opacity:1"/></linearGradient></defs><rect x="15" y="10" width="70" height="80" rx="4" fill="url(#bookGradient)"/><rect x="20" y="15" width="60" height="70" fill="white" opacity="0.95"/><line x1="50" y1="15" x2="50" y2="85" stroke="#4A90D9" stroke-width="1.5" opacity="0.3"/><rect x="25" y="25" width="20" height="3" rx="1.5" fill="#4A90D9" opacity="0.4"/><rect x="25" y="35" width="45" height="2" rx="1" fill="#4A90D9" opacity="0.3"/><rect x="25" y="42" width="45" height="2" rx="1" fill="#4A90D9" opacity="0.3"/><rect x="25" y="49" width="35" height="2" rx="1" fill="#4A90D9" opacity="0.3"/></svg>';
     const iconDataUrl = 'data:image/svg+xml,' + encodeURIComponent(blueIconSvg);
 
     navigator.mediaSession.metadata = new MediaMetadata({
