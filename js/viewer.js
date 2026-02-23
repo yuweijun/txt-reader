@@ -1591,8 +1591,8 @@ function setupMediaSession() {
     const title = currentChapter ? currentChapter.title : 'Text Reader';
     const storyTitle = document.title || 'Reading';
 
-    // Create blue book icon (iPhone Books style) as data URL for Dynamic Island
-    const blueIconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><linearGradient id="bookGradient" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#5BA3E0;stop-opacity:1"/><stop offset="100%" style="stop-color:#4A90D9;stop-opacity:1"/></linearGradient></defs><rect x="15" y="10" width="70" height="80" rx="4" fill="url(#bookGradient)"/><rect x="20" y="15" width="60" height="70" fill="white" opacity="0.95"/><line x1="50" y1="15" x2="50" y2="85" stroke="#4A90D9" stroke-width="1.5" opacity="0.3"/><rect x="25" y="25" width="20" height="3" rx="1.5" fill="#4A90D9" opacity="0.4"/><rect x="25" y="35" width="45" height="2" rx="1" fill="#4A90D9" opacity="0.3"/><rect x="25" y="42" width="45" height="2" rx="1" fill="#4A90D9" opacity="0.3"/><rect x="25" y="49" width="35" height="2" rx="1" fill="#4A90D9" opacity="0.3"/></svg>';
+    // Create blue Apple Books icon as data URL for Dynamic Island
+    const blueIconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><linearGradient id="blueGradient" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#5BA3E0;stop-opacity:1"/><stop offset="100%" style="stop-color:#3A7BC8;stop-opacity:1"/></linearGradient></defs><rect width="100" height="100" rx="18" fill="url(#blueGradient)"/><path d="M 50 72 L 50 28 C 50 24 48 22 44 22 L 26 22 C 22 22 20 24 20 28 L 20 66 C 20 68 21 70 23 71 L 48 71 C 49 71 50 71 50 72 Z M 50 72 L 50 28 C 50 24 52 22 56 22 L 74 22 C 78 22 80 24 80 28 L 80 66 C 80 68 79 70 77 71 L 52 71 C 51 71 50 71 50 72 Z" fill="white" stroke="white" stroke-width="5" stroke-linejoin="round"/></svg>';
     const iconDataUrl = 'data:image/svg+xml,' + encodeURIComponent(blueIconSvg);
 
     navigator.mediaSession.metadata = new MediaMetadata({
