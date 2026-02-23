@@ -1592,7 +1592,7 @@ function setupMediaSession() {
     const storyTitle = document.title || 'Reading';
 
     // Create blue Apple Books icon as data URL for Dynamic Island
-    const blueIconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><linearGradient id="blueGradient" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#5BA3E0;stop-opacity:1"/><stop offset="100%" style="stop-color:#3A7BC8;stop-opacity:1"/></linearGradient></defs><rect width="100" height="100" rx="18" fill="url(#blueGradient)"/><path d="M 50 72 L 50 28 C 50 24 48 22 44 22 L 26 22 C 22 22 20 24 20 28 L 20 66 C 20 68 21 70 23 71 L 48 71 C 49 71 50 71 50 72 Z M 50 72 L 50 28 C 50 24 52 22 56 22 L 74 22 C 78 22 80 24 80 28 L 80 66 C 80 68 79 70 77 71 L 52 71 C 51 71 50 71 50 72 Z" fill="white" stroke="white" stroke-width="5" stroke-linejoin="round"/></svg>';
+    const blueIconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500"><defs><linearGradient id="blueGrad" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#5BA3E0"/><stop offset="100%" style="stop-color:#3A7BC8"/></linearGradient></defs><rect width="500" height="500" rx="90" fill="url(#blueGrad)"/><g transform="translate(250, 250)"><path d="M -110 -90 L -110 60 Q -110 85 -85 85 L -5 85 L 0 105 L 5 85 L 85 85 Q 110 85 110 60 L 110 -90 Q 110 -115 85 -115 L 5 -115 Q 0 -115 0 -115 Q 0 -115 -5 -115 L -85 -115 Q -110 -115 -110 -90 Z M 0 -115 L 0 85" fill="none" stroke="white" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></g></svg>';
     const iconDataUrl = 'data:image/svg+xml,' + encodeURIComponent(blueIconSvg);
 
     navigator.mediaSession.metadata = new MediaMetadata({
