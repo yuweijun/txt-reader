@@ -1591,8 +1591,8 @@ function setupMediaSession() {
     const title = currentChapter ? currentChapter.title : 'Text Reader';
     const storyTitle = document.title || 'Reading';
 
-    // Create blue Apple Books icon as data URL for Dynamic Island
-    const blueIconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500"><defs><linearGradient id="blueGrad" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#5BA3E0"/><stop offset="100%" style="stop-color:#3A7BC8"/></linearGradient></defs><rect width="500" height="500" rx="90" fill="url(#blueGrad)"/><g transform="translate(250, 250)"><path d="M -110 -90 L -110 60 Q -110 85 -85 85 L -5 85 L 0 105 L 5 85 L 85 85 Q 110 85 110 60 L 110 -90 Q 110 -115 85 -115 L 5 -115 Q 0 -115 0 -115 Q 0 -115 -5 -115 L -85 -115 Q -110 -115 -110 -90 Z M 0 -115 L 0 85" fill="none" stroke="white" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></g></svg>';
+    // Create Safari compass icon as data URL for Dynamic Island
+    const blueIconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500"><defs><linearGradient id="g" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#5AC8FA"/><stop offset="100%" style="stop-color:#007AFF"/></linearGradient></defs><circle cx="250" cy="250" r="225" fill="url(#g)"/><circle cx="250" cy="250" r="185" fill="none" stroke="white" stroke-width="10"/><circle cx="250" cy="250" r="160" fill="none" stroke="white" stroke-width="5" opacity="0.5"/><line x1="250" y1="65" x2="250" y2="100" stroke="white" stroke-width="10"/><line x1="250" y1="400" x2="250" y2="435" stroke="white" stroke-width="10"/><line x1="65" y1="250" x2="100" y2="250" stroke="white" stroke-width="10"/><line x1="400" y1="250" x2="435" y2="250" stroke="white" stroke-width="10"/><path d="M250 250 L325 175" stroke="white" stroke-width="15" stroke-linecap="round"/><path d="M250 250 L175 325" stroke="red" stroke-width="15" stroke-linecap="round"/><circle cx="250" cy="250" r="15" fill="white"/></svg>';
     const iconDataUrl = 'data:image/svg+xml,' + encodeURIComponent(blueIconSvg);
 
     navigator.mediaSession.metadata = new MediaMetadata({
