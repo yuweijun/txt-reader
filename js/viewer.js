@@ -1540,6 +1540,9 @@ function startSpeech() {
   isPaused = false;
   updateSpeechButton();
 
+  // Setup Media Session API for iOS Dynamic Island
+  setupMediaSession();
+
   // IMPORTANT: Call speakNext() synchronously within user gesture
   // On iOS/Safari, speech synthesis must be triggered synchronously
   // in the user gesture event handler, not in async callbacks
@@ -1581,11 +1584,71 @@ function startSpeech() {
   startScreenDimTimer();
 }
 
+// Setup Media Session API for iOS Dynamic Island and lock screen controls
+function setupMediaSession() {
+  if ('mediaSession' in navigator) {
+    // Get current chapter or default title
+    const title = currentChapter ? currentChapter.title : 'Text Reader';
+    const storyTitle = document.title || 'Reading';
+
+    // Create blue book icon as data URL for Dynamic Island
+    const blueIconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect x="10" y="10" width="50" height="80" rx="5" fill="#4A90D9"/><rect x="20" y="15" width="35" height="70" fill="#f5f5f5"/><path d="M55 15 Q75 50 55 85" fill="#d0d0d0" stroke="#b0b0b0" stroke-width="1"/><rect x="60" y="10" width="30" height="80" rx="5" fill="#4A90D9"/></svg>';
+    const iconDataUrl = 'data:image/svg+xml,' + encodeURIComponent(blueIconSvg);
+
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: title,
+      artist: storyTitle,
+      album: 'Text Reader',
+      artwork: [
+        { src: iconDataUrl, sizes: '96x96', type: 'image/svg+xml' },
+        { src: iconDataUrl, sizes: '128x128', type: 'image/svg+xml' },
+        { src: iconDataUrl, sizes: '192x192', type: 'image/svg+xml' },
+        { src: iconDataUrl, sizes: '256x256', type: 'image/svg+xml' },
+        { src: iconDataUrl, sizes: '384x384', type: 'image/svg+xml' },
+        { src: iconDataUrl, sizes: '512x512', type: 'image/svg+xml' }
+      ]
+    });
+
+    // Set up media session action handlers
+    navigator.mediaSession.setActionHandler('play', () => {
+      if (isPaused) {
+        resumeSpeech();
+      }
+    });
+
+    navigator.mediaSession.setActionHandler('pause', () => {
+      if (isSpeaking && !isPaused) {
+        pauseSpeech();
+      }
+    });
+
+    navigator.mediaSession.setActionHandler('stop', () => {
+      stopSpeech();
+    });
+
+    navigator.mediaSession.setActionHandler('previoustrack', () => {
+      navigateToPreviousChapter();
+    });
+
+    navigator.mediaSession.setActionHandler('nexttrack', () => {
+      navigateToNextChapter();
+    });
+
+    // Set playback state
+    navigator.mediaSession.playbackState = 'playing';
+  }
+}
+
 async function pauseSpeech() {
   if (speechSynthesis) {
     speechSynthesis.cancel();
     isPaused = true;
     updateSpeechButton();
+
+    // Update Media Session state
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.playbackState = 'paused';
+    }
 
     // Release wake lock when paused to save battery
     await releaseWakeLock();
@@ -1602,6 +1665,11 @@ async function resumeSpeech() {
   if (speechSynthesis) {
     isPaused = false;
     updateSpeechButton();
+
+    // Update Media Session state
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.playbackState = 'playing';
+    }
 
     // Re-acquire wake lock when resuming
     await requestWakeLock();
@@ -1624,6 +1692,11 @@ async function stopSpeech() {
   isPaused = false;
   currentSpeechIndex = 0;
   updateSpeechButton();
+
+  // Update Media Session state
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.playbackState = 'none';
+  }
 
   // Stop silent audio when stopped
   stopSilentAudio();
