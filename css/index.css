@@ -119,6 +119,13 @@ body {
   transition: background-color 0.15s ease;
 }
 
+/* Last read story - highlight with sidebar-bg color */
+.story-item.last-read-story {
+  background-color: var(--sidebar-bg, rgba(10, 10, 10, 0.98));
+  border-left: 3px solid var(--heading-color, #4fc3f7);
+  font-weight: 500;
+}
+
 .story-item:hover {
   background-color: var(--btn-hover-bg, rgba(79, 195, 247, 0.1));
 }

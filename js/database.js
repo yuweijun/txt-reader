@@ -6,7 +6,7 @@
 class TextReaderDB {
   constructor() {
     this.dbName = 'TextReaderDB';
-    this.version = 2;
+    this.version = 3;
     this.db = null;
   }
 
@@ -36,6 +36,12 @@ class TextReaderDB {
           const booksStore = db.createObjectStore('books', { keyPath: 'id' });
           booksStore.createIndex('bookName', 'bookName', { unique: false });
           booksStore.createIndex('uploadTime', 'uploadTime', { unique: false });
+        }
+
+        // Add lastReadStory field to existing books (version 3)
+        if (oldVersion < 3 && db.objectStoreNames.contains('books')) {
+          // The lastReadStory field will be added via updateBook when stories are read
+          // No index needed for this field
         }
 
         // Create stories store
@@ -92,7 +98,8 @@ class TextReaderDB {
       id: bookData.id || Date.now().toString(),
       bookName: bookData.bookName,
       uploadTime: bookData.uploadTime || new Date().toISOString(),
-      originalFileName: bookData.originalFileName || ''
+      originalFileName: bookData.originalFileName || '',
+      lastReadStory: bookData.lastReadStory || null
     };
 
     await this.executeDBOperation('books', 'readwrite', store => store.add(book));
@@ -111,6 +118,37 @@ class TextReaderDB {
    */
   async getBookById(bookId) {
     return this.executeDBOperation('books', 'readonly', store => store.get(bookId));
+  }
+
+  /**
+   * Update a book
+   */
+  async updateBook(book) {
+    try {
+      await this.executeDBOperation('books', 'readwrite', store => store.put(book));
+      return book;
+    } catch (error) {
+      console.error('Failed to update book:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update lastReadStory for a book
+   */
+  async updateLastReadStory(bookId, storyId) {
+    try {
+      const book = await this.getBookById(bookId);
+      if (!book) {
+        throw new Error('Book not found');
+      }
+      book.lastReadStory = storyId;
+      await this.updateBook(book);
+      return book;
+    } catch (error) {
+      console.error('Failed to update lastReadStory:', error);
+      throw error;
+    }
   }
 
   /**

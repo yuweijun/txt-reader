@@ -607,6 +607,15 @@ async function loadFileContent() {
 
     fileContent = storyData.processedContent || storyData.content || '';
 
+    // Update lastReadStory for the book
+    if (currentBookId) {
+      try {
+        await db.updateLastReadStory(currentBookId, storyId);
+      } catch (error) {
+        console.error('Failed to update lastReadStory:', error);
+      }
+    }
+
     // Use pre-parsed chapters from story data (with line-based anchors)
     if (storyData.chapters && storyData.chapters.length > 0) {
       chapters = storyData.chapters.map((ch, index) => ({
