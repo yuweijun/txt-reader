@@ -1527,10 +1527,8 @@ function startSpeech() {
   speechTextQueue = getTextForSpeech();
   if (speechTextQueue.length === 0) return;
 
-  const contentContainer = document.querySelector('.content-container');
-  const scrollTop = contentContainer ? contentContainer.scrollTop : 0;
-
-  currentSpeechIndex = getTextIndexFromScrollPosition(scrollTop);
+  // Always start from the first visible text on current screen
+  currentSpeechIndex = getFirstVisibleTextIndex();
 
   // Cancel any pending speech to ensure clean state
   // Do this first before any other operations
@@ -1764,6 +1762,64 @@ function getTextIndexFromScrollPosition(scrollTop) {
   const approximateIndex = Math.floor((scrollTop / totalHeight) * lines.length);
 
   return Math.max(0, Math.min(approximateIndex, lines.length - 1));
+}
+
+/**
+ * Get the first visible text line index based on current viewport
+ * Returns the index in speechTextQueue of the first line visible on screen
+ */
+function getFirstVisibleTextIndex() {
+  const contentContainer = document.querySelector('.content-container');
+  const textContent = document.getElementById('textContent');
+  if (!contentContainer || !textContent) return 0;
+
+  const containerRect = contentContainer.getBoundingClientRect();
+  const lines = speechTextQueue;
+  
+  // Find elements that contain text and check their visibility
+  const allTextNodes = [];
+  const walker = document.createTreeWalker(
+    textContent,
+    NodeFilter.SHOW_TEXT,
+    null,
+    false
+  );
+  
+  let node;
+  while (node = walker.nextNode()) {
+    const text = node.textContent.trim();
+    if (text.length > 0) {
+      allTextNodes.push({ node, text });
+    }
+  }
+  
+  // Find the first line that is visible in viewport
+  for (let i = 0; i < lines.length; i++) {
+    const lineText = lines[i].trim();
+    if (!lineText) continue;
+    
+    // Find this line's DOM element
+    for (const { node, text } of allTextNodes) {
+      if (text === lineText || text.includes(lineText) || lineText.includes(text)) {
+        const parent = node.parentElement;
+        if (parent) {
+          const rect = parent.getBoundingClientRect();
+          // Check if element is visible in viewport (top of element is within or above viewport bottom)
+          if (rect.top >= containerRect.top - 50 && rect.top < containerRect.bottom) {
+            return i;
+          }
+          // If element top is above viewport but bottom is visible
+          if (rect.bottom > containerRect.top && rect.top < containerRect.top) {
+            return i;
+          }
+        }
+        break;
+      }
+    }
+  }
+  
+  // Fallback to scroll position estimation
+  return getTextIndexFromScrollPosition(contentContainer.scrollTop);
 }
 
 function highlightSpeechLine(index) {
