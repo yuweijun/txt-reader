@@ -291,10 +291,10 @@ body {
   font-size: 14px;
 }
 
-/* Minimum touch target sizes (44x44px Apple HIG) */
+/* Minimum touch target sizes (44x38px Apple HIG) */
 .btn {
-  min-height: 44px;
-  min-width: 44px;
+  min-height: 38px;
+  min-width: 38px;
 }
 
 .btn-sm {
@@ -325,8 +325,8 @@ body {
 
   .btn-link {
     /* Minimum touch target */
-    min-width: 44px;
-    min-height: 44px;
+    min-width: 38px;
+    min-height: 38px;
     padding: 10px !important;
     font-size: 12px !important;
   }
@@ -337,13 +337,12 @@ body {
 
   .upload-row .form-control {
     width: 100%;
-    /* Minimum 44px touch target and prevent iOS zoom */
-    min-height: 44px;
+    min-height: 38px;
     font-size: 16px;
   }
 
   .upload-row .btn {
     flex: 1;
-    min-height: 44px;
+    min-height: 38px;
   }
 }
