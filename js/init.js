@@ -249,8 +249,8 @@ function displayBooks() {
 
     html += `
       <div class="book-item tree-item" data-book-id="${book.id}">
-        <div class="book-header d-flex justify-content-between align-items-center">
-          <div class="flex-grow-1 d-flex align-items-center" onclick="toggleBook('${book.id}')" style="cursor: pointer;">
+        <div class="book-header d-flex justify-content-between align-items-center" onclick="toggleBook('${book.id}')" style="cursor: pointer;">
+          <div class="flex-grow-1 d-flex align-items-center">
             <i class="fas ${folderIcon} me-2 tree-folder-icon"></i>
             <h5 class="mb-0">
               ${window.escapeHtml(book.bookName)}
