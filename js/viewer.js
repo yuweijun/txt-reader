@@ -1076,14 +1076,6 @@ document.addEventListener('keydown', function(e) {
       navigateWithinChapter(1);
       break;
   }
-
-  if (e.key >= '1' && e.key <= '9') {
-    const chapterIndex = parseInt(e.key) - 1;
-    if (chapterIndex < chapters.length) {
-      e.preventDefault();
-      scrollToChapter(chapterIndex);
-    }
-  }
 });
 
 // Speech Synthesis functionality
@@ -1775,7 +1767,7 @@ function getFirstVisibleTextIndex() {
 
   const containerRect = contentContainer.getBoundingClientRect();
   const lines = speechTextQueue;
-  
+
   // Find elements that contain text and check their visibility
   const allTextNodes = [];
   const walker = document.createTreeWalker(
@@ -1784,7 +1776,7 @@ function getFirstVisibleTextIndex() {
     null,
     false
   );
-  
+
   let node;
   while (node = walker.nextNode()) {
     const text = node.textContent.trim();
@@ -1792,12 +1784,12 @@ function getFirstVisibleTextIndex() {
       allTextNodes.push({ node, text });
     }
   }
-  
+
   // Find the first line that is visible in viewport
   for (let i = 0; i < lines.length; i++) {
     const lineText = lines[i].trim();
     if (!lineText) continue;
-    
+
     // Find this line's DOM element
     for (const { node, text } of allTextNodes) {
       if (text === lineText || text.includes(lineText) || lineText.includes(text)) {
@@ -1817,7 +1809,7 @@ function getFirstVisibleTextIndex() {
       }
     }
   }
-  
+
   // Fallback to scroll position estimation
   return getTextIndexFromScrollPosition(contentContainer.scrollTop);
 }
